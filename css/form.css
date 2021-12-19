@@ -1,0 +1,45 @@
+/*div.DTE_Field input,*/
+/*div.DTE_Field textarea {*/
+    /*box-sizing: border-box;*/
+    /*background-color: white;*/
+    /*-webkit-transition: 0.2s linear;*/
+    /*transition: 0.2s linear;*/
+/*}*/
+/*div.DTE_Field input:focus,*/
+/*div.DTE_Field textarea:focus {*/
+    /*box-shadow: 0 0 0 1px #fff, 0 0 0 3px #007bff;*/
+    /*background-color: white;*/
+/*}*/
+/*div.DTE_Field input[type="color"],*/
+/*div.DTE_Field input[type="date"],*/
+/*div.DTE_Field input[type="datetime"],*/
+/*div.DTE_Field input[type="datetime-local"],*/
+/*div.DTE_Field input[type="email"],*/
+/*div.DTE_Field input[type="month"],*/
+/*div.DTE_Field input[type="number"],*/
+/*div.DTE_Field input[type="password"],*/
+/*div.DTE_Field input[type="search"],*/
+/*div.DTE_Field input[type="tel"],*/
+/*div.DTE_Field input[type="text"],*/
+/*div.DTE_Field input[type="time"],*/
+/*div.DTE_Field input[type="url"],*/
+/*div.DTE_Field input[type="week"] {*/
+    /*padding: 5px 12px;*/
+    /*width: 100%;*/
+    /*border-color: #ebebeb;*/
+    /*border-radius: 2px;*/
+    /*color: #929daf;*/
+    /*font-size: 14px;*/
+    /*line-height: inherit;*/
+    /*border: 1px solid rgba(0,0,0,.15);*/
+/*}*/
+/*div.DTE_Field_Type_select div.DTE_Field_Input {*/
+    /*padding-top: 4px;*/
+    /*background-clip: padding-box;*/
+    /*background-color: rgb(255, 255, 255);*/
+    /*border-radius: 2px;*/
+    /*!*border-color: rgb(131, 224, 215);*!*/
+    /*border-style: solid;*/
+    /*width: 312px;*/
+/*}*/
+
