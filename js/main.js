@@ -5389,6 +5389,14 @@ var ActivityCheckCharges={
 }
 
 var Invoice = {
+    addNote:function(number){
+        note_editor.create({
+            title: 'Add Note',
+            buttons: 'Add',
+        });
+        var invoice = document.getElementById("invoice_number1");
+        invoice.value = number;
+    },
     cancelInvoice: function(number) {
         var invoice = number;
 
@@ -5403,7 +5411,13 @@ var Invoice = {
             if (request.readyState == 4 && request.status == 200) {
                 var response = JSON.parse(request.responseText);
 
-                if (response.st == 120){
+                if (response.st == 121){
+                    header = "CANCELLATION ERROR";
+                    body = "No Note added to invoice for cancellation";
+                    Modaler.dModal(header,body)
+                    TableRfresh.freshTable('invoice');
+                }
+                else if (response.st == 120){
                     header = "DEFERAL CANCELLATION ERROR";
                     body = "Deferral cancellation refused. Some containers have been gated out.";
                     Modaler.dModal(header,body)
@@ -5437,6 +5451,63 @@ var Invoice = {
     },
 
     iniTable: function () {
+        note_editor = new $.fn.dataTable.Editor({
+            fields:[
+                {
+                    label:"Number",
+                    name:"invoice.number",
+                    attr:{
+                        class:"form-control",
+                        id:"invoice_number1",
+                        disabled: true
+                    }
+                },
+                {
+                    label:"Note",
+                    name:"note",
+                    type:"textarea",
+                    attr:{
+                        class:"form-control",
+                        id:"note_id"
+                    }
+                }
+            ]
+        });
+
+        note_editor.on("create", function () {
+           var invoice_number = $("#invoice_number1").val();
+           var note = $("#note_id").val();
+
+           $.ajax({
+              url:"/api/invoice/add_note",
+              type:"POST",
+              data:{
+                  invn: invoice_number,
+                  note: note
+              },
+               success: function (data) {
+                  var response = $.parseJSON(data);
+                  if (response.st == 122){
+                      header = "Add Note Error";
+                      body = "Cannot add empty field";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('invoice');
+                  }
+                  else if (response.st == 123){
+                      header = "Add Note Error";
+                      body = "Invoice must be unpaid";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('invoice');
+                  }
+               },
+               error:function () {
+                   alert("something went wrong");
+               }
+           });
+
+        });
+
+
         editor = new $.fn.dataTable.Editor({
             ajax:"/api/invoice/table",
             table: "#invoice",
@@ -5591,6 +5662,7 @@ var Invoice = {
 
                         if (data.invoice.status == 'UNPAID'  || data.invoice.status == 'DEFERRED'){
                             invoice += "<a href='#' onclick='Invoice.cancelInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
+                            invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
 
 
@@ -6274,7 +6346,14 @@ var SupplementaryInvoicePayment = {
 }
 
 var InvoiceApproval = {
-
+    addNote:function(number){
+        note_editor.create({
+            title: 'Add Note',
+            buttons: 'Add',
+        });
+        var invoice = document.getElementById("invoice_number1");
+        invoice.value = number;
+    },
     cancelInvoice: function(number) {
         var invoice = number;
 
@@ -6288,8 +6367,13 @@ var InvoiceApproval = {
         request.onload = function() {
             if (request.readyState == 4 && request.status == 200) {
                 var response = JSON.parse(request.responseText);
-
-                if (response.st == 120){
+                if (response.st == 121){
+                    header = "CANCELLATION ERROR";
+                    body = "No Note added to invoice for cancellation";
+                    Modaler.dModal(header,body)
+                    TableRfresh.freshTable('invoice');
+                }
+                else if (response.st == 120){
                     header = "Deferred Error";
                     body = "Deferral refused, some containers have gated out.";
                     Modaler.dModal(header,body)
@@ -6362,6 +6446,62 @@ var InvoiceApproval = {
             fields: [ ]
         });
 
+        note_editor = new $.fn.dataTable.Editor({
+            fields:[
+                {
+                    label:"Number",
+                    name:"invoice.number",
+                    attr:{
+                        class:"form-control",
+                        id:"invoice_number1",
+                        disabled: true
+                    }
+                },
+                {
+                    label:"Note",
+                    name:"note",
+                    type:"textarea",
+                    attr:{
+                        class:"form-control",
+                        id:"note_id"
+                    }
+                }
+            ]
+        });
+
+        note_editor.on("create", function () {
+            var invoice_number = $("#invoice_number1").val();
+            var note = $("#note_id").val();
+
+            $.ajax({
+                url:"/api/invoice/add_note",
+                type:"POST",
+                data:{
+                    invn: invoice_number,
+                    note: note
+                },
+                success: function (data) {
+                    var response = $.parseJSON(data);
+                    if (response.st == 122){
+                        header = "Add Note Error";
+                        body = "Cannot add empty field";
+                        Modaler.dModal(header,body);
+                        TableRfresh.freshTable('invoice');
+                    }
+                    else if (response.st == 123){
+                        header = "Add Note Error";
+                        body = "Invoice must be unpaid";
+                        Modaler.dModal(header,body);
+                        TableRfresh.freshTable('invoice');
+                    }
+                },
+                error:function () {
+                    alert("something went wrong");
+                }
+            });
+
+        });
+
 
         $('#invoice_approvals').DataTable({
             dom: "Bfrtip",
@@ -6408,6 +6548,8 @@ var InvoiceApproval = {
 
                             invoice += "<a href='#' onclick='InvoiceApproval.approveInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Approve</a><br/>";
                             invoice += "<a href='#' onclick='InvoiceApproval.cancelInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
+                            invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
+
                         }
 
                         return invoice;
