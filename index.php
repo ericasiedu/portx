@@ -11,17 +11,17 @@ function autoload($className)
     }
     $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
 
-    require ("PortX/".$fileName);
+    require ("../PortX_Library/".$fileName);
 }
 spl_autoload_register('autoload');
 $klein = new \Klein\Klein();
 $klein->respond(function ($request, $response, $service, $app) use ($klein){
-    $app->views="PortX/views";
-    $app->api="PortX/Api";
-    $app->report="PortX/Reports";
+    $app->views="../PortX_Library/views";
+    $app->api="../PortX_Library/Api";
+    $app->report="../PortX_Library/Reports";
 });
 
-$klein->respond('GET', '/', function ($request, $response,$service,$app) {
+$klein->respond('GET', '/portx/', function ($request, $response,$service,$app) {
     $service->render("$app->views/landing.php");
 });
 $klein->with('/user', function () use ($klein) {
@@ -30,7 +30,7 @@ $klein->with('/user', function () use ($klein) {
         $service->render("$app->views/$request->view.php",array('request'=>$request,'response'=>$response));
     });
 });
-$klein->with('/api', function () use ($klein) {
+$klein->with('portx/api', function () use ($klein) {
     $klein->respond(["GET","POST"],"/[:call]?/[:method]?/[:args]?",function ($request,$response,$service,$app){
         new \Lib\Authentication\Agent($request,$response,$service,$app);
         $method=$request->method;
