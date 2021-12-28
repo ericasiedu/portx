@@ -10245,7 +10245,7 @@ var Login = {
         if (!(email == '' || passwd == '')) {
             $.ajax({
                 type:"POST",
-                url:"/api/login",
+                url:"api/login",
                 data: {
                     em: email,
                     pass: passwd,
