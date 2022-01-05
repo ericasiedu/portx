@@ -8886,7 +8886,7 @@ var Dashboard={
             columns: [
                 {data: "name"},
                 {data: "ft20"},
-                {data: "ft40"},
+                {data: "ft40"}
             ],
             select: true,
             buttons:[],
@@ -10032,7 +10032,11 @@ var Bank = {
                 { data: "name" },
             ],
             select: true,
-            buttons: Helpers.permissionButtonBuilder(editor,'Bank')
+                buttons: [
+                { extend: "colvis", className:"btn btn-primary"},
+                { extend: "create", editor: editor, className:"btn btn-primary" },
+                { extend: "edit", editor: editor, className:"btn btn-primary" }
+            ]
         });
     }
 };
@@ -10556,6 +10560,7 @@ var System={
             type:"POST",
             success: function (data) {
                 var result = $.parseJSON(data);
+
 
 
                 $('#company_name').val(result.cnam);
