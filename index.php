@@ -34,7 +34,7 @@ $klein->with('/api', function () use ($klein) {
 
     $klein->respond(["GET","POST"],"/[:call]?/[:method]?/[:args]?",function ($request,$response,$service,$app){
         
-        // new \Lib\Authentication\Agent($request,$response,$service,$app);
+        new \Lib\Authentication\Agent($request,$response,$service,$app);
         $method=$request->method;
         $call=explode('_',$request->call);
         $_call=array_map(function($d){
