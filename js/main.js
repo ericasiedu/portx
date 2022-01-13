@@ -8028,7 +8028,7 @@ var InvoiceReports = {
                 {data: "tax"},
                 {data: "note", visible:false},
                 {data: "cust"},
-                {data: "name", visible:false},
+                {data: "fname", visible:false},
                 {data: "date", visible:false},
                 {data: "stat", visible:false}
             ],
@@ -8041,6 +8041,19 @@ var InvoiceReports = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+
+                                var src = $('#invoice_reports').DataTable().columns().dataSrc();
+                                var visible = $('#invoice_reports').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#invoice_reports').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
+
                                 $.ajax({
                                     url:"/api/invoice_report/report",
                                     type:"POST",
@@ -8052,6 +8065,8 @@ var InvoiceReports = {
                                         tax : $('#tax_type').val(),
                                         pstat : $('#payment_status').val(),
                                         istat : $('#invoice_status').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "xsl"
                                     },
                                     success:function (data) {
@@ -8067,6 +8082,17 @@ var InvoiceReports = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                var src = $('#invoice_reports').DataTable().columns().dataSrc();
+                                var visible = $('#invoice_reports').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#invoice_reports').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/invoice_report/report",
                                     type:"POST",
@@ -8078,6 +8104,8 @@ var InvoiceReports = {
                                         tax : $('#tax_type').val(),
                                         pstat : $('#payment_status').val(),
                                         istat : $('#invoice_status').val(),
+                                          src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "pdf"
                                     },
                                     success:function (data) {
@@ -8938,7 +8966,7 @@ var StockReport = {
                 {data: "flag"},
                 {data: "num"},
                 {data: "code"},
-                {data: "depot"},
+                {data: "gstat"},
                 {data: "sdate"},
                 {data: "days"},
                 {data: "stack"},
@@ -8955,6 +8983,17 @@ var StockReport = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function () {
+                                var src = $('#line_report').DataTable().columns().dataSrc();
+                                var visible = $('#line_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#line_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/stock_report/line_report",
                                     type:"POST",
@@ -8962,6 +9001,8 @@ var StockReport = {
                                     data: {
                                         slid : id,
                                         trty : $('#trade_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         rtyp:"xsl"
                                     },
                                     success:function(data){
@@ -8977,6 +9018,17 @@ var StockReport = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function(){
+                                var src = $('#line_report').DataTable().columns().dataSrc();
+                                var visible = $('#line_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#line_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/stock_report/line_report",
                                     type:"POST",
@@ -8984,6 +9036,8 @@ var StockReport = {
                                     data:{
                                         slid : id,
                                         trty : $('#trade_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         rtyp:"pdf"
                                     },
                                     success:function(data){
@@ -9052,7 +9106,7 @@ var StockReport = {
             serverSide: true,
             columnDefs: [{ "searchable": false, "targets": 11 } ],
             columns: [
-                { data: "name" },
+                { data: "sname" },
                 { data: "22G1" },
                 { data: "22U1" },
                 { data: "22P1" },
@@ -9065,7 +9119,7 @@ var StockReport = {
                 { data: "TTEU", visible:false },
                 { data: null,
                     render: function (data, type, row) {
-                        return "<a href=\'#\' onclick=\'StockReport.viewLine(" + data.shipping_line.id + ", \"" + data.name + "\")\'>View</a><br>";
+                        return "<a href=\'#\' onclick=\'StockReport.viewLine(" + data.shipping_line.id + ", \"" + data.sname + "\")\'>View</a><br>";
                     }
                 },
             ],
@@ -9078,12 +9132,25 @@ var StockReport = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function () {
+                                var src = $('#depot_report').DataTable().columns().dataSrc();
+                                var visible = $('#depot_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#depot_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/stock_report/report",
                                     type:"POST",
                                     async: false,
                                     data:{
                                         typ: $('#trade_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         rtyp:"xsl"
                                     },
                                     success:function(data){
@@ -9099,12 +9166,25 @@ var StockReport = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function(){
+                                var src = $('#depot_report').DataTable().columns().dataSrc();
+                                var visible = $('#depot_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#depot_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/stock_report/report",
                                     type:"POST",
                                     async: false,
                                     data:{
                                         typ: $('#trade_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         rtyp:"pdf"
                                     } ,
                                     success:function(data){
@@ -9187,6 +9267,17 @@ var GateReport = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function () {
+                                var src = $('#gate_report').DataTable().columns().dataSrc();
+                                var visible = $('#gate_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#gate_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/gate_report/report",
                                     type:"POST",
@@ -9196,6 +9287,8 @@ var GateReport = {
                                         edat: $('#end_date').val(),
                                         typ: $('#trade_type').val(),
                                         gate_st: $('#gate_status').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         rtyp:"xsl"
                                     },
                                     success:function(data){
@@ -9211,7 +9304,17 @@ var GateReport = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function(){
+                                var src = $('#gate_report').DataTable().columns().dataSrc();
+                                var visible = $('#gate_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
 
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#gate_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/gate_report/report",
                                     type:"POST",
@@ -9221,6 +9324,8 @@ var GateReport = {
                                         edat: $('#end_date').val(),
                                         typ: $('#trade_type').val(),
                                         gate_st: $('#gate_status').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         rtyp:"pdf"
                                     } ,
                                     success:function(data){
@@ -9331,6 +9436,17 @@ var PaymentReport = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                var src = $('#payment_report').DataTable().columns().dataSrc();
+                                var visible = $('#payment_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#payment_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/payment_report/report",
                                     type:"POST",
@@ -9341,6 +9457,8 @@ var PaymentReport = {
                                         pymd : $('#payment_mode').val(),
                                         trty : $('#trade_type').val(),
                                         txty : $('#tax_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "xsl"
                                     },
                                     success:function (data) {
@@ -9356,6 +9474,7 @@ var PaymentReport = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                
                                 $.ajax({
                                     url:"/api/payment_report/report",
                                     type:"POST",
@@ -9366,6 +9485,8 @@ var PaymentReport = {
                                         pymd : $('#payment_mode').val(),
                                         trty : $('#trade_type').val(),
                                         txty : $('#tax_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "pdf"
                                     },
                                     success:function (data) {
@@ -9402,7 +9523,7 @@ var VoyageReports = {
 
         var header = voyage_name;
         var body = "<table id=\"voyage_details\" class=\"display table responsive\">" +
-            "<thead><tr><th>State </th><th>Container Number</th><th>ISO Type Code </th><th>Status</th><th>Stock Date</th><th>Days Spent</th>" +
+            "<thead><tr><th>State </th><th>Container Number</th><th>ISO Type Code </th><th>Gate Status</th><th>Stock Date</th><th>Days Spent</th>" +
             "<th>Stack</th><th>Position</th><th>Client</th><th>Condition</th></tr></thead>" +
             "</table>";
         CondModal.cModal(header, body);
@@ -9488,6 +9609,17 @@ var VoyageReports = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                var src = $('#voyage_report').DataTable().columns().dataSrc();
+                                var visible = $('#voyage_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#voyage_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/voyage_report/report",
                                     type:"POST",
@@ -9495,6 +9627,8 @@ var VoyageReports = {
                                     data: {
                                         stdt : $('#start_date').val(),
                                         eddt : $('#end_date').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "xsl"
                                     },
                                     success:function (data) {
@@ -9510,6 +9644,17 @@ var VoyageReports = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                var src = $('#voyage_report').DataTable().columns().dataSrc();
+                                var visible = $('#voyage_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#voyage_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/voyage_report/report",
                                     type:"POST",
@@ -9517,6 +9662,8 @@ var VoyageReports = {
                                     data: {
                                         stdt : $('#start_date').val(),
                                         eddt : $('#end_date').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "pdf"
                                     },
                                     success:function (data) {
@@ -9621,7 +9768,7 @@ var VoyageDetails = {
                 {data: "stat"},
                 {data: "ctnr"},
                 {data: "code"},
-                {data: "dnam"},
+                {data: "gstat"},
                 {data: "stdat"},
                 {data: "days"},
                 {data: "stak"},
@@ -9638,12 +9785,25 @@ var VoyageDetails = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                var src = $('#voyage_details').DataTable().columns().dataSrc();
+                                var visible = $('#voyage_details').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#voyage_details').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/voyage_report/details_report",
                                     type:"POST",
                                     async: false,
                                     data: {
                                         vyid: id,
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "xsl"
                                     },
                                     success:function (data) {
@@ -9659,12 +9819,25 @@ var VoyageDetails = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                var src = $('#voyage_details').DataTable().columns().dataSrc();
+                                var visible = $('#voyage_details').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#voyage_details').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/voyage_report/details_report",
                                     type:"POST",
                                     async: false,
                                     data: {
                                         vyid: id,
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "pdf"
                                     },
                                     success:function (data) {
