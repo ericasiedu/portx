@@ -9517,6 +9517,156 @@ var PaymentReport = {
     }
 }
 
+var SummaryRemittance = {
+    iniTable: function () {
+        $('#summary_remittance').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/summary_remittance/table",
+                type: "POST",
+                data:function (d) {
+                    d.stdt = $('#start_date').val();
+                    d.endt = $('#end_date').val();
+                    d.pymd = $('#payment_mode').val();
+                    d.trty = $('#trade_type').val();
+                    d.txty = $('#tax_type').val();
+                }
+            },
+            serverSide: true,
+            columns: [
+                { data: "date" },
+                { data: "number" },
+                { data: "teu" },
+                { data: "stripping", visible:false },
+                { data: "dd_cost", visible:false },
+                { data: "handling_cost" },
+                { data: "storage_cost", visible:false },
+                { data: "transport_cost" },
+                { data: "waiver_amount", visible:false},
+                { data: "invoice_cost" },
+                { data: "vat" },
+                { data: "covid19", visible:false },
+                { data: "wht", visible:false},
+                { data: "getfund", visible:false},
+                { data: "name", visible:false },
+                { data: "paid" },
+                { data: "outstanding" },
+                { data: "shipline", visible:false },
+                { data: "vessel" },
+                { data: "consignee" },
+            ],
+            footerCallback: function ( row, data, start, end, display ) {
+                var api = this.api(), data;
+                $.ajax({
+                    url:"/api/payment_report/total",
+                    type:"POST",
+                    async: false,
+                    data: {
+                        stdt : $('#start_date').val(),
+                        endt : $('#end_date').val(),
+                        pymd : $('#payment_mode').val(),
+                        trty : $('#trade_type').val(),
+                        txty : $('#tax_type').val(),
+                    },
+                    success:function (data) {
+                        var result = $.parseJSON(data);
+                        if (result.st == 230) {
+                            $(api.column(0).footer()).html(
+                                'Total Paid: GHS ' + result.tpay
+                            );
+
+                            $(api.column(2).footer()).html(
+                                'VAT: GHS ' + result.vat
+                            );
+
+                            $(api.column(5).footer()).html(
+                                'NHIL: GHS ' + result.nhil
+                            );
+
+                            $(api.column(8).footer()).html(
+                                'GET Fund: GHS ' + result.getf
+                            );
+                        }
+                    },
+                    error:function () {
+                        alert("something went wrong");
+                    }
+                });
+            },
+            select: true,
+            buttons: [
+                { extend: "colvis", className:"btn btn-primary"},
+                {
+                    extend: 'collection',
+                    text: 'Download',
+                    buttons: [
+                        {extend: 'excel', className: "btn btn-primary active",
+                            action:function (e, dt, node, config) {
+                                $.ajax({
+                                    url:"/api/payment_report/report",
+                                    type:"POST",
+                                    async: false,
+                                    data: {
+                                        stdt : $('#start_date').val(),
+                                        endt : $('#end_date').val(),
+                                        pymd : $('#payment_mode').val(),
+                                        trty : $('#trade_type').val(),
+                                        txty : $('#tax_type').val(),
+                                        type : "xsl"
+                                    },
+                                    success:function (data) {
+                                        data = JSON.parse(data);
+                                        var file = data.file;
+                                        Helpers.loadFile(file);
+                                    },
+                                    error:function () {
+                                        alert("something went wrong");
+                                    }
+                                });
+                            }
+                        },
+                        {extend: 'pdf', className: "btn btn-primary active",
+                            action:function (e, dt, node, config) {
+                                $.ajax({
+                                    url:"/api/payment_report/report",
+                                    type:"POST",
+                                    async: false,
+                                    data: {
+                                        stdt : $('#start_date').val(),
+                                        endt : $('#end_date').val(),
+                                        pymd : $('#payment_mode').val(),
+                                        trty : $('#trade_type').val(),
+                                        txty : $('#tax_type').val(),
+                                        type : "pdf"
+                                    },
+                                    success:function (data) {
+                                        data = JSON.parse(data);
+                                        var file = data.file;
+                                        Helpers.loadFile(file);
+                                    },
+                                    error:function () {
+                                        alert("something went wrong");
+                                    }
+                                });
+                            }
+                        }
+                    ],
+                    className: "btn btn-primary"
+                }
+            ],
+        });
+
+        document.getElementById('start_date').valueAsDate = new Date();
+        document.getElementById('end_date').valueAsDate = new Date();
+
+        $('#start_date, #end_date, #payment_mode, #trade_type, #tax_type').on('change', function () {
+            $('#summary_remittance').DataTable().ajax.reload();
+        });
+
+
+    }
+}
+
 var VoyageReports = {
 
     ViewVoyage:function(id,voyage_name){
