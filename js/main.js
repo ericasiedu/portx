@@ -7962,8 +7962,6 @@ var SupPayment = {
             buttons: []
         });
 
-
-
     }
 }
 
@@ -9602,8 +9600,19 @@ var SummaryRemittance = {
                     buttons: [
                         {extend: 'excel', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
+                                var src = $('#summary_remittance').DataTable().columns().dataSrc();
+                                var visible = $('#summary_remittance').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#summary_remittance').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
-                                    url:"/api/payment_report/report",
+                                    url:"/api/summary_remittance/report",
                                     type:"POST",
                                     async: false,
                                     data: {
@@ -9612,6 +9621,8 @@ var SummaryRemittance = {
                                         pymd : $('#payment_mode').val(),
                                         trty : $('#trade_type').val(),
                                         txty : $('#tax_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "xsl"
                                     },
                                     success:function (data) {
@@ -9628,7 +9639,7 @@ var SummaryRemittance = {
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
                                 $.ajax({
-                                    url:"/api/payment_report/report",
+                                    url:"/api/summary_remittance/report",
                                     type:"POST",
                                     async: false,
                                     data: {
@@ -9637,6 +9648,8 @@ var SummaryRemittance = {
                                         pymd : $('#payment_mode').val(),
                                         trty : $('#trade_type').val(),
                                         txty : $('#tax_type').val(),
+                                        src: JSON.stringify(visible_columns),
+                                        head: JSON.stringify(visible_headers),
                                         type : "pdf"
                                     },
                                     success:function (data) {

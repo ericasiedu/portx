@@ -1,4 +1,5 @@
 <?php
+ini_set("display_errors", 0);
 function autoload($className)
 {
     $className = ltrim($className, '\\');
