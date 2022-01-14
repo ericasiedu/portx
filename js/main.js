@@ -9638,7 +9638,18 @@ var SummaryRemittance = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
-                                $.ajax({
+                                    var src = $('#summary_remittance').DataTable().columns().dataSrc();
+                                    var visible = $('#summary_remittance').DataTable().columns().visible();
+                                    var visible_columns = [];
+                                    var visible_headers = [];
+    
+                                    for (var i = 0; i < src.length; i++) {
+                                        if (visible[i]) {
+                                            visible_columns.push(src[i]);
+                                            visible_headers.push($('#summary_remittance').DataTable().column(i).header().innerHTML);
+                                        }
+                                    }
+                                    $.ajax({
                                     url:"/api/summary_remittance/report",
                                     type:"POST",
                                     async: false,
