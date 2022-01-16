@@ -5232,8 +5232,6 @@ var SupplementaryInvoice = {
 
 
         $('#sup_storage_button').on('click', function () {
-
-            // $("#sup_storage_button").attr("disabled", true);
             
             var datePattern = new RegExp("\\d{4}-\\d{2}-\\d{2}");
             var container_list = document.getElementById('container');
@@ -5413,7 +5411,7 @@ var Invoice = {
 
                 if (response.st == 121){
                     header = "CANCELLATION ERROR";
-                    body = "No Note added to invoice for cancellation";
+                    body = "Note not added to invoice for cancellation";
                     Modaler.dModal(header,body)
                     TableRfresh.freshTable('invoice');
                 }
@@ -7025,6 +7023,14 @@ var SupplementaryInvoiceWaiver = {
 }
 
 var SupplementaryInvoiceApproval = {
+    addNote:function(number){
+        note_editor.create({
+            title: 'Add Note',
+            buttons: 'Add',
+        });
+        var invoice = document.getElementById("invoice_number1");
+        invoice.value = number;
+    },
     cancelInvoice: function(number) {
         var invoice = number;
 
@@ -7038,8 +7044,13 @@ var SupplementaryInvoiceApproval = {
         request.onload = function() {
             if (request.readyState == 4 && request.status == 200) {
                 var response = JSON.parse(request.responseText);
-
-                if (response.st == 121){
+                if (response.st == 123){
+                    header = "CANCELLATION ERROR";
+                    body = "Note not added to invoice for cancellation";
+                    Modaler.dModal(header,body)
+                    TableRfresh.freshTable('invoice');
+                }
+                else if (response.st == 121){
                     header = "Deferred Error";
                     body = "Deferral refused, some containers have gated out.";
                     Modaler.dModal(header,body)
@@ -7116,6 +7127,62 @@ var SupplementaryInvoiceApproval = {
             fields: []
         });
 
+        note_editor = new $.fn.dataTable.Editor({
+            fields:[
+                {
+                    label:"Number",
+                    name:"supplementary_invoice.number",
+                    attr:{
+                        class:"form-control",
+                        id:"invoice_number1",
+                        disabled: true
+                    }
+                },
+                {
+                    label:"Note",
+                    name:"note",
+                    type:"textarea",
+                    attr:{
+                        class:"form-control",
+                        id:"note_id"
+                    }
+                }
+            ]
+        });
+
+        note_editor.on("create", function () {
+           var invoice_number = $("#invoice_number1").val();
+           var note = $("#note_id").val();
+
+           $.ajax({
+              url:"/api/supp_invoice/add_note",
+              type:"POST",
+              data:{
+                  invn: invoice_number,
+                  note: note
+              },
+               success: function (data) {
+                  var response = $.parseJSON(data);
+                  if (response.st == 122){
+                      header = "Add Note Error";
+                      body = "Cannot add empty field";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('invoice');
+                  }
+                  else if (response.st == 123){
+                      header = "Add Note Error";
+                      body = "Invoice must be unpaid";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('invoice');
+                  }
+               },
+               error:function () {
+                   alert("something went wrong");
+               }
+           });
+
+        });
+
         $('#supp_invoice_approvals').DataTable({
             dom: "Bfrtip",
             ajax: {
@@ -7160,6 +7227,7 @@ var SupplementaryInvoiceApproval = {
                         if (data.stat == 'UNPAID' || data.stat == 'DEFERRED'){
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.approveInvoice(\"" + data.spnum + "\")' class='depot_cont'>Approve</a><br/>";
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.cancelInvoice(\"" + data.spnum + "\")' class='depot_cont'>Cancel</a><br/>";
+                            invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
 
                         return invoice;
@@ -7220,6 +7288,15 @@ var Payment = {
 }
 
 var SuppInvoice = {
+    addNote:function(number){
+        note_editor.create({
+            title: 'Add Note',
+            buttons: 'Add',
+        });
+        var invoice = document.getElementById("invoice_number1");
+        invoice.value = number;
+    },
+
     cancelInvoice: function(number) {
         var invoice = number;
 
@@ -7233,8 +7310,13 @@ var SuppInvoice = {
         request.onload = function() {
             if (request.readyState == 4 && request.status == 200) {
                 var response = JSON.parse(request.responseText);
-
-                if (response.st == 121){
+                if (response.st == 123){
+                    header = "CANCELLATION ERROR";
+                    body = "Note not added to invoice for cancellation";
+                    Modaler.dModal(header,body)
+                    TableRfresh.freshTable('invoice');
+                }
+                else if (response.st == 121){
                     header = "Deferred Error";
                     body = "Deferral refused, some containers have gated out.";
                     Modaler.dModal(header,body)
@@ -7342,6 +7424,62 @@ var SuppInvoice = {
             ajax:"/api/supp_invoice/table",
             table: "#supp_invoice",
             fields: []
+        });
+
+        note_editor = new $.fn.dataTable.Editor({
+            fields:[
+                {
+                    label:"Number",
+                    name:"supplementary_invoice.number",
+                    attr:{
+                        class:"form-control",
+                        id:"invoice_number1",
+                        disabled: true
+                    }
+                },
+                {
+                    label:"Note",
+                    name:"note",
+                    type:"textarea",
+                    attr:{
+                        class:"form-control",
+                        id:"note_id"
+                    }
+                }
+            ]
+        });
+
+        note_editor.on("create", function () {
+           var invoice_number = $("#invoice_number1").val();
+           var note = $("#note_id").val();
+
+           $.ajax({
+              url:"/api/supp_invoice/add_note",
+              type:"POST",
+              data:{
+                  invn: invoice_number,
+                  note: note
+              },
+               success: function (data) {
+                  var response = $.parseJSON(data);
+                  if (response.st == 122){
+                      header = "Add Note Error";
+                      body = "Cannot add empty field";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('invoice');
+                  }
+                  else if (response.st == 123){
+                      header = "Add Note Error";
+                      body = "Invoice must be unpaid";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('invoice');
+                  }
+               },
+               error:function () {
+                   alert("something went wrong");
+               }
+           });
+
         });
 
         deferPayment = new $.fn.dataTable.Editor( {
@@ -7520,6 +7658,7 @@ var SuppInvoice = {
 
                         if (data.stat == 'UNPAID' || data.stat == 'DEFERRED'){
                             invoice += "<a href='#' onclick='SuppInvoice.cancelInvoice(\"" + data.spnum + "\")' class='depot_cont'>Cancel</a><br/>";
+                            invoice += "<a href='#' onclick='SuppInvoice.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
 
                         return invoice;
@@ -9535,20 +9674,33 @@ var SummaryRemittance = {
                 { data: "date" },
                 { data: "number" },
                 { data: "teu" },
-                { data: "stripping", visible:false },
-                { data: "dd_cost", visible:false },
-                { data: "handling_cost" },
-                { data: "storage_cost", visible:false },
-                { data: "transport_cost" },
-                { data: "waiver_amount", visible:false},
-                { data: "invoice_cost" },
-                { data: "vat" },
-                { data: "covid19", visible:false },
-                { data: "wht", visible:false},
-                { data: "getfund", visible:false},
+                { data: "stripping",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
+                { data: "dd_cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
+                { data: "handling_cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "storage_cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
+                { data: "transport_cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "waiver_amount",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false},
+                { data: "invoice_cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "vat",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "covid19", 
+                render: $.fn.dataTable.render.number( ',', '.', 2 ),visible:false },
+                { data: "wht",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false},
+                { data: "getfund",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false},
                 { data: "name", visible:false },
-                { data: "paid" },
-                { data: "outstanding" },
+                { data: "paid",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "outstanding",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "shipline", visible:false },
                 { data: "vessel" },
                 { data: "consignee" },
