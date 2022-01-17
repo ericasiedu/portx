@@ -1,1 +1,4 @@
-PortX/
+PortX/Reports/*
+.gitignore
+PortX
+PortX/*
