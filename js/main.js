@@ -9556,7 +9556,7 @@ var SummaryRemittance = {
             footerCallback: function ( row, data, start, end, display ) {
                 var api = this.api(), data;
                 $.ajax({
-                    url:"/api/payment_report/total",
+                    url:"/api/summary_remittance/total",
                     type:"POST",
                     async: false,
                     data: {
@@ -9568,21 +9568,87 @@ var SummaryRemittance = {
                     },
                     success:function (data) {
                         var result = $.parseJSON(data);
-                        if (result.st == 230) {
+                        let totals = result.totals;
+                        console.log(result);
+                        if (result.st == 232) {
                             $(api.column(0).footer()).html(
-                                'Total Paid: GHS ' + result.tpay
+                                ''
+                            );
+
+                            $(api.column(1).footer()).html(
+                                ''
                             );
 
                             $(api.column(2).footer()).html(
-                                'VAT: GHS ' + result.vat
+                                ''
+                            );
+
+                            $(api.column(3).footer()).html(
+                                result.totalStripping
+                            );
+
+                            $(api.column(4).footer()).html(
+                                result.totalDd
                             );
 
                             $(api.column(5).footer()).html(
-                                'NHIL: GHS ' + result.nhil
+                                result.totalHandling
+                            );
+
+                            $(api.column(6).footer()).html(
+                                result.totalStorage
+                            );
+
+                            $(api.column(7).footer()).html(
+                                result.totalTransport
                             );
 
                             $(api.column(8).footer()).html(
-                                'GET Fund: GHS ' + result.getf
+                                result.totalWaiver
+                            );
+
+                            $(api.column(9).footer()).html(
+                                result.totalInvoice
+                            );
+
+                            $(api.column(10).footer()).html(
+                                result.totalVat
+                            );
+
+                            $(api.column(11).footer()).html(
+                                result.totalCovid
+                            );
+
+                            $(api.column(12).footer()).html(
+                                result.totalWht
+                            );
+
+                            $(api.column(13).footer()).html(
+                                result.totalGetfund
+                            );
+
+                            $(api.column(14).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(15).footer()).html(
+                                result.totalPaid
+                            );
+
+                            $(api.column(16).footer()).html(
+                                result.totalOutstanding
+                            );
+
+                            $(api.column(17).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(18).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(19).footer()).html(
+                                ''
                             );
                         }
                     },
