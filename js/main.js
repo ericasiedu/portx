@@ -9665,6 +9665,7 @@ var SummaryRemittance = {
     formatMoney: function(number) {
         return number.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
     },
+    
 
     iniTable: function () {
         $('#summary_remittance').DataTable( {
