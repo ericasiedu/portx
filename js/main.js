@@ -9662,6 +9662,20 @@ var PaymentReport = {
 }
 
 var SummaryRemittance = {
+    formatMoney: function(number, decPlaces, decSep, thouSep) {
+        decPlaces = isNaN(decPlaces = Math.abs(decPlaces)) ? 2 : decPlaces,
+        decSep = typeof decSep === "undefined" ? "." : decSep;
+        thouSep = typeof thouSep === "undefined" ? "," : thouSep;
+        var sign = number < 0 ? "-" : "";
+        var i = String(parseInt(number = Math.abs(Number(number) || 0).toFixed(decPlaces)));
+        var j = (j = i.length) > 3 ? j % 3 : 0;
+    
+        return sign +
+            (j ? i.substr(0, j) + thouSep : "") +
+            i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
+            (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+    },
+
     iniTable: function () {
         $('#summary_remittance').DataTable( {
             dom: "Bfrtip",
@@ -9676,6 +9690,7 @@ var SummaryRemittance = {
                     d.txty = $('#tax_type').val();
                 }
             },
+            
             serverSide: true,
             columns: [
                 { data: "date" },
@@ -9721,14 +9736,11 @@ var SummaryRemittance = {
                     data: {
                         stdt : $('#start_date').val(),
                         endt : $('#end_date').val(),
-                        pymd : $('#payment_mode').val(),
-                        trty : $('#trade_type').val(),
-                        txty : $('#tax_type').val(),
+                    
                     },
                     success:function (data) {
                         var result = $.parseJSON(data);
-                        let totals = result.totals;
-                        console.log(result);
+                    
                         if (result.st == 232) {
                             $(api.column(0).footer()).html(
                                 ''
@@ -9743,47 +9755,47 @@ var SummaryRemittance = {
                             );
 
                             $(api.column(3).footer()).html(
-                                result.totalStripping
+                               'GHS '+SummaryRemittance.formatMoney(result.tstp) 
                             );
 
                             $(api.column(4).footer()).html(
-                                result.totalDd
+                                'GHS '+SummaryRemittance.formatMoney(result.ttdd)
                             );
 
                             $(api.column(5).footer()).html(
-                                result.totalHandling
+                               'GHS '+ SummaryRemittance.formatMoney(result.thd) 
                             );
 
                             $(api.column(6).footer()).html(
-                                result.totalStorage
+                                'GHS '+SummaryRemittance.formatMoney(result.tstrg)
                             );
 
                             $(api.column(7).footer()).html(
-                                result.totalTransport
+                                'GHS '+SummaryRemittance.formatMoney(result.ttsp) 
                             );
 
                             $(api.column(8).footer()).html(
-                                result.totalWaiver
+                                'GHS '+SummaryRemittance.formatMoney(result.ttwv)
                             );
 
                             $(api.column(9).footer()).html(
-                                result.totalInvoice
+                                'GHS '+SummaryRemittance.formatMoney(result.tinv)
                             );
 
                             $(api.column(10).footer()).html(
-                                result.totalVat
+                                'GHS '+SummaryRemittance.formatMoney(result.ttvt)
                             );
 
                             $(api.column(11).footer()).html(
-                                result.totalCovid
+                                'GHS '+SummaryRemittance.formatMoney(result.tcvd)
                             );
 
                             $(api.column(12).footer()).html(
-                                result.totalWht
+                                'GHS '+SummaryRemittance.formatMoney(result.twht)
                             );
 
                             $(api.column(13).footer()).html(
-                                result.totalGetfund
+                                'GHS '+SummaryRemittance.formatMoney(result.tgfd)
                             );
 
                             $(api.column(14).footer()).html(
@@ -9791,11 +9803,11 @@ var SummaryRemittance = {
                             );
 
                             $(api.column(15).footer()).html(
-                                result.totalPaid
+                               'GHS ' +SummaryRemittance.formatMoney(result.ttpd)
                             );
 
                             $(api.column(16).footer()).html(
-                                result.totalOutstanding
+                                'GHS '+SummaryRemittance.formatMoney(result.outb)
                             );
 
                             $(api.column(17).footer()).html(
