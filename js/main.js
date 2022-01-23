@@ -5497,6 +5497,12 @@ var Invoice = {
                       Modaler.dModal(header,body);
                       TableRfresh.freshTable('invoice');
                   }
+                      else if(response.st == 260){
+                        header = "Add Note Success";
+                        body = "Note Added successful";
+                        Modaler.dModal(header,body);
+                        TableRfresh.freshTable('invoice');
+                    }
                },
                error:function () {
                    alert("something went wrong");
@@ -6492,6 +6498,12 @@ var InvoiceApproval = {
                         Modaler.dModal(header,body);
                         TableRfresh.freshTable('invoice');
                     }
+                    else if(response.st == 260){
+                        header = "Add Note Success";
+                        body = "Note Added successful";
+                        Modaler.dModal(header,body);
+                        TableRfresh.freshTable('invoice');
+                    }
                 },
                 error:function () {
                     alert("something went wrong");
@@ -7474,6 +7486,12 @@ var SuppInvoice = {
                       Modaler.dModal(header,body);
                       TableRfresh.freshTable('invoice');
                   }
+                  else if(response.st == 260){
+                    header = "Add Note Success";
+                    body = "Note Added successful";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('invoice');
+                }
                },
                error:function () {
                    alert("something went wrong");
