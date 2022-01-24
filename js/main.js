@@ -9402,6 +9402,7 @@ var GateReport = {
                 { data: "vhnum" },
                 { data: "dvname" },
                 { data: "tkname" },
+                { data: "ship" },
                 { data: "date"},
                 { data: "icsl1", visible:false},
                 { data: "icsl2", visible:false},
