@@ -4571,6 +4571,7 @@ var Invoicing = {
             $('#v_error_label').text('');
             $('#selection_error').text('');
             $('#error_tax_label').text('');
+            
 
             selectedContainers = [];
 
@@ -4664,7 +4665,10 @@ var Invoicing = {
                         if (result.st == 1112) {
                             $('#error_label').text("Actual Arrival and Actual Departure not set for " + result.vyg);
                         }
-                        if (result.st == 1119){
+                        if (result.st == 114){
+                            $('#error_tax_label').text("Cannot choose Tax exempt for customer billing group");
+                        }
+                        else if (result.st == 1119){
                             $('#error_tax_label').text("There are no tax created for this tax type");
                         }
                         if (result.st == 2110) {
@@ -5387,6 +5391,9 @@ var ActivityCheckCharges={
 }
 
 var Invoice = {
+    recallInvoice:function(number){
+        alert(number);
+    },
     addNote:function(number){
         note_editor.create({
             title: 'Add Note',
@@ -5667,6 +5674,9 @@ var Invoice = {
                         if (data.invoice.status == 'UNPAID'  || data.invoice.status == 'DEFERRED'){
                             invoice += "<a href='#' onclick='Invoice.cancelInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
+                        }
+                        if(data.invoice.status == "CANCELLED"){
+                            invoice += "<a href='#' onclick='Invoice.recallInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Recall Invoice</a><br/>";
                         }
 
 
