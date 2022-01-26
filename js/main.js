@@ -4665,10 +4665,7 @@ var Invoicing = {
                         if (result.st == 1112) {
                             $('#error_label').text("Actual Arrival and Actual Departure not set for " + result.vyg);
                         }
-                        if (result.st == 114){
-                            $('#error_tax_label').text("Cannot choose Tax exempt for customer billing group");
-                        }
-                        else if (result.st == 1119){
+                       if (result.st == 1119){
                             $('#error_tax_label').text("There are no tax created for this tax type");
                         }
                         if (result.st == 2110) {
