@@ -1316,7 +1316,8 @@ var GateIn = {
                     name: "gate_record.special_seal",
                     attr: {
                         class: "form-control",
-                        maxlength: 20
+                        maxlength: 20,
+                        id: "specialSealID"
                     }
                 },
                 {
@@ -1556,6 +1557,7 @@ var GateIn = {
             var imdg = this.field('imdg');
             var consignee = this.field('gate_record.consignee');
             var shipping_line = this.field('shipping_line_id');
+            var special_seal = this.field('gate_record.special_seal');
             $.ajax({
                 url: "/api/container/add_export_container",
                 type: "POST",
@@ -1574,7 +1576,8 @@ var GateIn = {
                     seal1: seal_no1.val(),
                     seal2: seal_no2.val(),
                     cons: consignee.val(),
-                    shid: shipping_line.val()
+                    shid: shipping_line.val(),
+                    spel: special_seal.val()
                 },
                 success: function (data) {
                     var data = JSON.parse(data);
@@ -1594,8 +1597,18 @@ var GateIn = {
                             var seal_number1 = document.querySelector('#seal_number1');
                             seal_number1.scrollIntoView();
                         }
+                        else if (data.err.sea1 == 'senu1') {
+                            seal_no1.error("Seal number 1 must not contain symbols");
+                            var seal_number1 = document.querySelector('#seal_number1');
+                            seal_number1.scrollIntoView();
+                        }
                         if (data.err.seal2) {
                             seal_no2.error("Empty field");
+                            var seal_number2 = document.querySelector('#seal_number2');
+                            seal_number2.scrollIntoView();
+                        }
+                        else if (data.err.sea2 == 'senu2') {
+                            seal_no2.error("Seal number 2 must not contain symbols");
                             var seal_number2 = document.querySelector('#seal_number2');
                             seal_number2.scrollIntoView();
                         }
@@ -1644,11 +1657,21 @@ var GateIn = {
                             var book_numberID = document.querySelector('#book_numberID');
                             book_numberID.scrollIntoView();
                         }
+                        else if (data.err.bkn == 'bokn') {
+                            book_number.error("Booking number must not contain symbols.");
+                            var book_numberID = document.querySelector('#book_numberID');
+                            book_numberID.scrollIntoView();
+                        }
+                        if (data.err.spesc == "spelss") {
+                            special_seal.error("Special Seal must not contain symbols.");
+                            var specialSealID = document.querySelector('#specialSealID');
+                            specialSealID.scrollIntoView();
+                        }
                         if (data.err.cnum != undefined) {
-                            if (data.err.cnum == "ex") {
+                            if (data.err.cnum1 == "ex") {
                                 container_no.error("Container already exist.");
                             }
-                            if (data.err.cnum == "len") {
+                            if (data.err.clens == "len") {
                                 container_no.error("Container number must not be less that 11 charactors.");
                             }
                             if (data.err.cnum == "sym") {
