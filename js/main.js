@@ -1348,6 +1348,7 @@ var GateIn = {
                     label: "Consignee:",
                     name: "gate_record.consignee",
                     attr: {
+                        list:"customers_name",
                         id: 'consignee',
                         class: "form-control",
                         maxlength: 255
@@ -8216,6 +8217,9 @@ var InvoiceReports = {
                 render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "note", visible:false},
                 {data: "cust"},
+                {data: "wvnam", visible:false},
+                {data: "clnam", visible:false},
+                {data: "dfnam", visible:false},
                 {data: "fname", visible:false},
                 {data: "date", visible:false},
                 {data: "stat", visible:false}
@@ -9667,7 +9671,17 @@ var PaymentReport = {
                         },
                         {extend: 'pdf', className: "btn btn-primary active",
                             action:function (e, dt, node, config) {
-                                
+                                var src = $('#payment_report').DataTable().columns().dataSrc();
+                                var visible = $('#payment_report').DataTable().columns().visible();
+                                var visible_columns = [];
+                                var visible_headers = [];
+
+                                for (var i = 0; i < src.length; i++) {
+                                    if (visible[i]) {
+                                        visible_columns.push(src[i]);
+                                        visible_headers.push($('#payment_report').DataTable().column(i).header().innerHTML);
+                                    }
+                                }
                                 $.ajax({
                                     url:"/api/payment_report/report",
                                     type:"POST",
