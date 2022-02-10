@@ -5413,7 +5413,33 @@ var ActivityCheckCharges={
 
 var Invoice = {
     recallInvoice:function(number){
-        alert(number);
+        var header =  '';
+        var body = '';
+        $.ajax({
+            url:"/api/invoice/recall_invoice",
+            type:"POST",
+            data:{
+                invn: number
+            },
+             success: function (data) {
+                var response = $.parseJSON(data);
+                if (response.st == 1134){
+                    header = "Recalled Error";
+                    body = "Container(s) have been invoiced";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('invoice');
+                }
+                else if (response.st == 260){
+                    header = "Recalled";
+                    body = "Invoice have been recalled";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('invoice');
+                }
+             },
+             error:function () {
+                 alert("something went wrong");
+             }
+         });
     },
     addNote:function(number){
         note_editor.create({
@@ -5692,7 +5718,7 @@ var Invoice = {
                             invoice += '<a class="view_act" href="/api/export_invoice/show_export/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
-                        if (data.invoice.status == 'UNPAID'  || data.invoice.status == 'DEFERRED'){
+                        if (data.invoice.status == 'UNPAID'  || data.invoice.status == 'DEFERRED' || data.invoice.status == 'RECALLED'){
                             invoice += "<a href='#' onclick='Invoice.cancelInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
@@ -6585,7 +6611,7 @@ var InvoiceApproval = {
                             invoice += '<a class="view_act" href="/api/export_invoice/show_export/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
-                        if (data.invoice.status == 'UNPAID' || data.invoice.status == 'DEFERRED') {
+                        if (data.invoice.status == 'UNPAID' || data.invoice.status == 'DEFERRED' || data.invoice.status == 'RECALLED') {
 
                             invoice += "<a href='#' onclick='InvoiceApproval.approveInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Approve</a><br/>";
                             invoice += "<a href='#' onclick='InvoiceApproval.cancelInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
@@ -7267,7 +7293,7 @@ var SupplementaryInvoiceApproval = {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
-                        if (data.stat == 'UNPAID' || data.stat == 'DEFERRED'){
+                        if (data.stat == 'UNPAID' || data.stat == 'DEFERRED' || data.stat == 'RECALLED'){
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.approveInvoice(\"" + data.spnum + "\")' class='depot_cont'>Approve</a><br/>";
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.cancelInvoice(\"" + data.spnum + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
@@ -7331,6 +7357,35 @@ var Payment = {
 }
 
 var SuppInvoice = {
+    recallInvoice:function(number){
+        var header =  '';
+        var body = '';
+        $.ajax({
+            url:"/api/supp_invoice_status/recall_invoice",
+            type:"POST",
+            data:{
+                invn: number
+            },
+             success: function (data) {
+                var response = $.parseJSON(data);
+                if (response.st == 1134){
+                    header = "Recalled Error";
+                    body = "Container(s) have been invoiced";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('supp_invoice');
+                }
+                else if (response.st == 260){
+                    header = "Recalled";
+                    body = "Invoice have been recalled";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('supp_invoice');
+                }
+             },
+             error:function () {
+                 alert("something went wrong");
+             }
+         });
+    },
     addNote:function(number){
         note_editor.create({
             title: 'Add Note',
@@ -7509,19 +7564,19 @@ var SuppInvoice = {
                       header = "Add Note Error";
                       body = "Cannot add empty field";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('invoice');
+                      TableRfresh.freshTable('supp_invoice');
                   }
-                  else if (response.st == 123){
+                  else if (response.st == 1230){
                       header = "Add Note Error";
-                      body = "Invoice must be unpaid";
+                      body = "Supplementary Invoice must be paid";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('invoice');
+                      TableRfresh.freshTable('supp_invoice');
                   }
                   else if(response.st == 260){
                     header = "Add Note Success";
                     body = "Note Added successful";
                     Modaler.dModal(header,body);
-                    TableRfresh.freshTable('invoice');
+                    TableRfresh.freshTable('supp_invoice');
                 }
                },
                error:function () {
@@ -7705,9 +7760,13 @@ var SuppInvoice = {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
-                        if (data.stat == 'UNPAID' || data.stat == 'DEFERRED'){
+                        if (data.stat == 'UNPAID' || data.stat == 'DEFERRED' || data.stat == 'RECALLED'){
                             invoice += "<a href='#' onclick='SuppInvoice.cancelInvoice(\"" + data.spnum + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='SuppInvoice.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
+                        }
+
+                        if(data.stat == "CANCELLED"){
+                            invoice += "<a href='#' onclick='SuppInvoice.recallInvoice(\"" + data.spnum + "\")' class='depot_cont'>Recall Invoice</a><br/>";
                         }
 
                         return invoice;
