@@ -5416,7 +5416,7 @@ var Invoice = {
         var header =  '';
         var body = '';
         $.ajax({
-            url:"/api/invoice/recall_invoice",
+            url:"/api/invoice_status/recall_invoice",
             type:"POST",
             data:{
                 invn: number
