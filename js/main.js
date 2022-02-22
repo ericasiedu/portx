@@ -788,9 +788,9 @@ var GateIn = {
 
     conditionAlert: function (id, container) {
         var header = container;
-        var body = "<table id=\"container_condition\" class=\"display table\">" +
+        var body = "<div class=\"col-md-12\"><table id=\"container_condition\" class=\"display table-responsive\">" +
             "<thead><tr><th>Container Section </th><th>Damage Type </th><th>Damage Severity </th><th>Note </th></tr></thead>" +
-            "</table>";
+            "</table></div>";
 
         CondModal.cModal(header, body);
 
@@ -2761,6 +2761,92 @@ var Vehicle = {
             ],
             select: true,
             buttons: Helpers.permissionButtonBuilder(editor,'Vehicle')
+        });
+    }
+}
+
+var InvoiceNote={
+    initTable: function(invoice_id){
+
+          edit_note = new $.fn.dataTable.Editor( {
+            ajax: "/api/invoice_note/table",
+            table: "#view_notes",
+            fields: [
+              
+              {
+                    label: "Note:",
+                    name: "invoice_note.note",
+                    type: "textarea",
+                    attr: {
+                        class: "form-control"
+                    }
+                }]
+        });
+
+        $('#view_notes').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/invoice_note/table",
+                type: "POST",
+                data: {
+                    "record": invoice_id
+                }
+            },
+            searching:false,
+            serverSide: true,
+            columns: [
+                { data: "numb" },
+                { data: "invoice_note.note" },
+                { data: "ntype" },
+                { data: "user" }
+            ],
+            select: true,
+            buttons: [
+                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+            ]
+        });
+    }
+}
+
+var SuppsInvoiceNote={
+    initTable: function(invoice_id){
+
+          edit_note = new $.fn.dataTable.Editor( {
+            ajax: "/api/supp_invoice_note/table",
+            table: "#view_notes",
+            fields: [
+              
+              {
+                    label: "Note:",
+                    name: "supp_invoice_note.note",
+                    type: "textarea",
+                    attr: {
+                        class: "form-control"
+                    }
+                }]
+        });
+
+        $('#view_notes').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/supp_invoice_note/table",
+                type: "POST",
+                data: {
+                    "record": invoice_id
+                }
+            },
+            searching:false,
+            serverSide: true,
+            columns: [
+                { data: "numb" },
+                { data: "supplementary_note.note" },
+                { data: "ntype" },
+                { data: "user" }
+            ],
+            select: true,
+            buttons: [
+                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+            ]
         });
     }
 }
@@ -5646,7 +5732,39 @@ var ActivityCheckCharges={
 
 var Invoice = {
     recallInvoice:function(number){
-        alert(number);
+        var header =  '';
+        var body = '';
+        $.ajax({
+            url:"/api/invoice_status/recall_invoice",
+            type:"POST",
+            data:{
+                invn: number
+            },
+             success: function (data) {
+                var response = $.parseJSON(data);
+                if(response.st == 1133){
+                    header = "Recalled Error";
+                    body = "Invoiced has not be assigned reason";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('invoice');
+                }
+                else if (response.st == 1134){
+                    header = "Recalled Error";
+                    body = "Container(s) have been invoiced";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('invoice');
+                }
+                else if (response.st == 260){
+                    header = "Recalled";
+                    body = "Invoice have been recalled";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('invoice');
+                }
+             },
+             error:function () {
+                 alert("something went wrong");
+             }
+         });
     },
     addNote:function(number){
         note_editor.create({
@@ -5709,6 +5827,17 @@ var Invoice = {
 
     },
 
+    viewNote: function(id,number){
+        var header = number;
+        var body = "<div class=\"col-md-12\"><table id=\"view_notes\" class=\"display table-responsive\">" +
+            "<thead><tr><th>Invoice Number </th><th>Note </th><th>Note Type </th><th>User </th></tr></thead>" +
+            "</table></div>";
+
+        CondModal.cModal(header, body);
+
+        InvoiceNote.initTable(id);
+    },
+
     iniTable: function () {
         note_editor = new $.fn.dataTable.Editor({
             fields:[
@@ -5719,6 +5848,19 @@ var Invoice = {
                         class:"form-control",
                         id:"invoice_number1",
                         disabled: true
+                    }
+                },
+                {
+                    label:"Note Type",
+                    name:"note_type",
+                    type:"select",
+                    options: [
+                        {label: "CANCELLED", value: 1},
+                        {label: "RECALLED", value: 2}
+                    ],
+                    attr:{
+                        class:"form-control",
+                        id:"note_type_id"
                     }
                 },
                 {
@@ -5734,19 +5876,22 @@ var Invoice = {
         });
 
         note_editor.on("create", function () {
-           var invoice_number = $("#invoice_number1").val();
-           var note = $("#note_id").val();
+            var invoice_number = this.field('number');
+            var note = this.field('note');
+            var note_type = this.field('note_type');
 
            $.ajax({
               url:"/api/invoice/add_note",
               type:"POST",
               data:{
-                  invn: invoice_number,
-                  note: note
+                  invn: invoice_number.val(),
+                  note: note.val(),
+                  ntype: note_type.val()
               },
                success: function (data) {
                   var response = $.parseJSON(data);
                   if (response.st == 122){
+                    //   note.error("empty fields");
                       header = "Add Note Error";
                       body = "Cannot add empty field";
                       Modaler.dModal(header,body);
@@ -5771,6 +5916,22 @@ var Invoice = {
            });
 
         });
+
+        
+        note_editor.on('preSubmit', function(e, o, action){
+            // if(action !== 'remove'){
+                var note_id = this.field('note');
+                if(!note_id.val()){
+                    note_id.error("EMPTY Field");
+                    var note = document.querySelector('#note_id');
+                    note.scrollIntoView();
+                }
+            // }
+        });
+        
+
+        // expressEditor.on('preSubmit', function (e, o, action) {
+        //     if (action !== 'remove') {
 
 
         editor = new $.fn.dataTable.Editor({
@@ -5906,7 +6067,7 @@ var Invoice = {
                 {data: "invoice.tax"},
                 {data: "customer.id"},
                 {data: "tax_type.name"},
-                {data: "invoice.note", visible:false},
+                {data: "note", visible:false},
                 {data: "customer.name"},
                 {data: "invoice.approved"},
                 {data: "invoice.user_id", visible:false},
@@ -5929,7 +6090,13 @@ var Invoice = {
                             invoice += "<a href='#' onclick='Invoice.cancelInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
-                        if(data.invoice.status == "CANCELLED"){
+                        if(data.invn != null){
+                            invoice += "<a href='#' onclick='Invoice.viewNote(\"" + data.invi + "," + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
+                        }
+                        if(data.invoice.status == "CANCELLED" || data.invoice.status =="RECALLED"){
+                            invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
+                        }
+                        if(data.invs == "recallable" && data.invoice.status != "RECALLED"){
                             invoice += "<a href='#' onclick='Invoice.recallInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Recall Invoice</a><br/>";
                         }
 
@@ -6622,6 +6789,16 @@ var InvoiceApproval = {
         var invoice = document.getElementById("invoice_number1");
         invoice.value = number;
     },
+    viewNote: function(id,number){
+        var header = number;
+        var body = "<div class=\"col-md-12\"><table id=\"view_notes\" class=\"display table-responsive\">" +
+            "<thead><tr><th>Invoice Number </th><th>Note </th><th>Note Type </th><th>User </th></tr></thead>" +
+            "</table></div>";
+
+        CondModal.cModal(header, body);
+
+        InvoiceNote.initTable(id);
+    },
     cancelInvoice: function(number) {
         var invoice = number;
 
@@ -6635,26 +6812,27 @@ var InvoiceApproval = {
         request.onload = function() {
             if (request.readyState == 4 && request.status == 200) {
                 var response = JSON.parse(request.responseText);
+
                 if (response.st == 121){
                     header = "CANCELLATION ERROR";
-                    body = "No Note added to invoice for cancellation";
+                    body = "Note not added to invoice for cancellation";
                     Modaler.dModal(header,body)
-                    TableRfresh.freshTable('invoice');
+                    TableRfresh.freshTable('invoice_approvals');
                 }
                 else if (response.st == 120){
-                    header = "Deferred Error";
-                    body = "Deferral refused, some containers have gated out.";
+                    header = "DEFERAL CANCELLATION ERROR";
+                    body = "Deferral cancellation refused. Some containers have been gated out.";
                     Modaler.dModal(header,body)
                     TableRfresh.freshTable('invoice_approvals');
                 }
                 else if (response.st == 240){
-                    header = "Deferral Cancelled";
-                    body = "Deferred Invoice Number "+response.numb+"cancelled";
+                    header = "DEFERRAL CANCELLED";
+                    body = "Invoice Number "+response.numb+" deferral cancelled";
                     Modaler.dModal(header,body)
                     TableRfresh.freshTable('invoice_approvals');
                 }
                 else if (response.st == 241){
-                    header = "Cancelled";
+                    header = "CANCELLED";
                     body = "Invoice Number "+response.numb+" cancelled";
                     Modaler.dModal(header,body);
                     TableRfresh.freshTable('invoice_approvals');
@@ -6670,8 +6848,6 @@ var InvoiceApproval = {
             }
         };
         request.send("data=" + invoice);
-
-
     },
 
     approveInvoice: function(number) {
@@ -6726,6 +6902,19 @@ var InvoiceApproval = {
                     }
                 },
                 {
+                    label:"Note Type",
+                    name:"note_type",
+                    type:"select",
+                    options: [
+                        {label: "CANCELLED", value: 1},
+                        {label: "RECALLED", value: 2}
+                    ],
+                    attr:{
+                        class:"form-control",
+                        id:"note_type_id"
+                    }
+                },
+                {
                     label:"Note",
                     name:"note",
                     type:"textarea",
@@ -6740,41 +6929,43 @@ var InvoiceApproval = {
         note_editor.on("create", function () {
             var invoice_number = $("#invoice_number1").val();
             var note = $("#note_id").val();
-
+            var note_type = $("#note_type_id").val();
+ 
             $.ajax({
-                url:"/api/invoice/add_note",
-                type:"POST",
-                data:{
-                    invn: invoice_number,
-                    note: note
-                },
+               url:"/api/invoice/add_note",
+               type:"POST",
+               data:{
+                   invn: invoice_number,
+                   note: note,
+                   ntype: note_type
+               },
                 success: function (data) {
-                    var response = $.parseJSON(data);
-                    if (response.st == 122){
-                        header = "Add Note Error";
-                        body = "Cannot add empty field";
-                        Modaler.dModal(header,body);
-                        TableRfresh.freshTable('invoice');
-                    }
-                    else if (response.st == 123){
-                        header = "Add Note Error";
-                        body = "Invoice must be unpaid";
-                        Modaler.dModal(header,body);
-                        TableRfresh.freshTable('invoice');
-                    }
-                    else if(response.st == 260){
-                        header = "Add Note Success";
-                        body = "Note Added successful";
-                        Modaler.dModal(header,body);
-                        TableRfresh.freshTable('invoice');
-                    }
+                   var response = $.parseJSON(data);
+                   if (response.st == 122){
+                       header = "Add Note Error";
+                       body = "Cannot add empty field";
+                       Modaler.dModal(header,body);
+                       TableRfresh.freshTable('invoice');
+                   }
+                   else if (response.st == 123){
+                       header = "Add Note Error";
+                       body = "Invoice must be unpaid";
+                       Modaler.dModal(header,body);
+                       TableRfresh.freshTable('invoice');
+                   }
+                       else if(response.st == 260){
+                         header = "Add Note Success";
+                         body = "Note Added successful";
+                         Modaler.dModal(header,body);
+                         TableRfresh.freshTable('invoice');
+                     }
                 },
                 error:function () {
                     alert("something went wrong");
                 }
             });
-
-        });
+ 
+         });
 
 
         $('#invoice_approvals').DataTable({
@@ -6800,7 +6991,7 @@ var InvoiceApproval = {
                 {data: "invoice.tax"},
                 {data: "customer.id"},
                 {data: "tax_type.name"},
-                {data: "invoice.note", visible:false},
+                {data: "note", visible:false},
                 {data: "customer.name"},
                 {data: "invoice.user_id", visible:false},
                 {data: "invoice.date", visible:false},
@@ -6818,12 +7009,14 @@ var InvoiceApproval = {
                             invoice += '<a class="view_act" href="/api/export_invoice/show_export/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
-                        if (data.invoice.status == 'UNPAID' || data.invoice.status == 'DEFERRED') {
+                        if (data.invoice.status == 'UNPAID' || data.invoice.status == 'DEFERRED' || data.invoice.status == 'RECALLED') {
 
                             invoice += "<a href='#' onclick='InvoiceApproval.approveInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Approve</a><br/>";
                             invoice += "<a href='#' onclick='InvoiceApproval.cancelInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
-
+                        }
+                        if(data.invn != null){
+                            invoice += "<a href='#' onclick='Invoice.viewNote(\"" + data.invi + "," + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         return invoice;
@@ -7500,7 +7693,7 @@ var SupplementaryInvoiceApproval = {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
-                        if (data.stat == 'UNPAID' || data.stat == 'DEFERRED'){
+                        if (data.stat == 'UNPAID' || data.stat == 'DEFERRED' || data.stat == 'RECALLED'){
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.approveInvoice(\"" + data.spnum + "\")' class='depot_cont'>Approve</a><br/>";
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.cancelInvoice(\"" + data.spnum + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
@@ -7564,6 +7757,41 @@ var Payment = {
 }
 
 var SuppInvoice = {
+    recallInvoice:function(number){
+        var header =  '';
+        var body = '';
+        $.ajax({
+            url:"/api/supp_invoice_status/recall_invoice",
+            type:"POST",
+            data:{
+                invn: number
+            },
+             success: function (data) {
+                var response = $.parseJSON(data);
+                if(response.st == 1133){
+                    header = "Recalled Error";
+                    body = "Invoiced has not be assigned reason";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('supp_invoice');
+                }
+                else if (response.st == 1134){
+                    header = "Recalled Error";
+                    body = "Container(s) have been invoiced";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('supp_invoice');
+                }
+                else if (response.st == 260){
+                    header = "Recalled";
+                    body = "Invoice have been recalled";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('supp_invoice');
+                }
+             },
+             error:function () {
+                 alert("something went wrong");
+             }
+         });
+    },
     addNote:function(number){
         note_editor.create({
             title: 'Add Note',
@@ -7571,6 +7799,17 @@ var SuppInvoice = {
         });
         var invoice = document.getElementById("invoice_number1");
         invoice.value = number;
+    },
+
+    viewNote: function(id,number){
+        var header = number;
+        var body = "<div class=\"col-md-12\"><table id=\"view_notes\" class=\"display table-responsive\">" +
+            "<thead><tr><th>Invoice Number </th><th>Note </th><th>Note Type </th><th>User </th></tr></thead>" +
+            "</table></div>";
+
+        CondModal.cModal(header, body);
+
+        SuppsInvoiceNote.initTable(id);
     },
 
     cancelInvoice: function(number) {
@@ -7714,6 +7953,19 @@ var SuppInvoice = {
                     }
                 },
                 {
+                    label:"Note Type",
+                    name:"note_type",
+                    type:"select",
+                    options: [
+                        {label: "CANCELLED", value: 1},
+                        {label: "RECALLED", value: 2}
+                    ],
+                    attr:{
+                        class:"form-control",
+                        id:"note_type_id"
+                    }
+                },
+                {
                     label:"Note",
                     name:"note",
                     type:"textarea",
@@ -7728,13 +7980,15 @@ var SuppInvoice = {
         note_editor.on("create", function () {
            var invoice_number = $("#invoice_number1").val();
            var note = $("#note_id").val();
+           var note_type = $("#note_type_id").val();
 
            $.ajax({
               url:"/api/supp_invoice/add_note",
               type:"POST",
               data:{
                   invn: invoice_number,
-                  note: note
+                  note: note,
+                  ntype: note_type
               },
                success: function (data) {
                   var response = $.parseJSON(data);
@@ -7742,19 +7996,19 @@ var SuppInvoice = {
                       header = "Add Note Error";
                       body = "Cannot add empty field";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('invoice');
+                      TableRfresh.freshTable('supp_invoice');
                   }
                   else if (response.st == 123){
                       header = "Add Note Error";
-                      body = "Invoice must be unpaid";
+                      body = "Supplementary Invoice must be paid";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('invoice');
+                      TableRfresh.freshTable('supp_invoice');
                   }
                   else if(response.st == 260){
                     header = "Add Note Success";
                     body = "Note Added successful";
                     Modaler.dModal(header,body);
-                    TableRfresh.freshTable('invoice');
+                    TableRfresh.freshTable('supp_invoice');
                 }
                },
                error:function () {
@@ -7942,6 +8196,19 @@ var SuppInvoice = {
                             invoice += "<a href='#' onclick='SuppInvoice.cancelInvoice(\"" + data.spnum + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='SuppInvoice.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
+
+                        if(data.invn != null){
+                            invoice += "<a href='#' onclick='SuppInvoice.viewNote(\"" + data.invi + "," + data.spnum +"\")' class='depot_cont'>View Note</a><br/>";
+                        }
+
+                        if(data.stat == "CANCELLED" || data.stat == "RECALLED"){
+                            invoice += "<a href='#' onclick='SuppInvoice.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
+                        }
+                        if(data.invs == "recallable" && data.stat != "RECALLED"){
+                            invoice += "<a href='#' onclick='SuppInvoice.recallInvoice(\"" + data.spnum + "\")' class='depot_cont'>Recall Invoice</a><br/>";
+                        }
+
+                    
 
                         return invoice;
 
