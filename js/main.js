@@ -5843,7 +5843,7 @@ var Invoice = {
             fields:[
                 {
                     label:"Number",
-                    name:"invoice.number",
+                    name:"number",
                     attr:{
                         class:"form-control",
                         id:"invoice_number1",
@@ -5918,16 +5918,16 @@ var Invoice = {
         });
 
         
-        note_editor.on('preSubmit', function(e, o, action){
+        // note_editor.on('preSubmit', function(e, o, action){
             // if(action !== 'remove'){
-                var note_id = this.field('note');
-                if(!note_id.val()){
-                    note_id.error("EMPTY Field");
-                    var note = document.querySelector('#note_id');
-                    note.scrollIntoView();
-                }
+                // var note_id = this.field('note');
+                // if(!note_id.val()){
+                //     note_id.error("EMPTY Field");
+                //     var note = document.querySelector('#note_id');
+                //     note.scrollIntoView();
+                // }
             // }
-        });
+        // });
         
 
         // expressEditor.on('preSubmit', function (e, o, action) {
