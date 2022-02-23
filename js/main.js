@@ -4914,8 +4914,9 @@ var Invoicing = {
                             cont: JSON.stringify(list)
                         },
                         success: function (data) {
+                            console.log(data);
                             let parsedData = JSON.parse(data);
-                            // console.log(parsedData);
+                            console.log(parsedData);
                             $('#preview-left .removable').remove();
 
                             document.getElementById('company-name').innerHTML = parsedData.companyName;
@@ -5645,7 +5646,7 @@ var SupplementaryInvoice = {
 
 
                                     $.ajax({
-                                        url: "/api/supp_invoice/add_supp_invoice",
+                                        url: "/api/supp_invoice/previewSupplementaryInvoice",
                                         type: "POST",
                                         data:{
                                             note: note,
@@ -5655,38 +5656,167 @@ var SupplementaryInvoice = {
                                             cntrs: JSON.stringify(list)
                                         },
                                         success:function(data){
-                                            result = $.parseJSON(data);
+                                            // console.log(data);
+                                            let parsedData = $.parseJSON(data);
+                                            // console.log(parsedData);
 
                                             ActivityCheckCharges.checkCharges(result);
 
-                                            if (result.st == 2035){
-                                                if (SupplementaryInvoice.is_proforma) {
-                                                    if (result.ttyp == 1){
-                                                        $('#invoice_link').html('<a href="/api/proforma_supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Import Invoice</a>');
-                                                    }
-                                                    if (result.ttyp == 4){
-                                                        $('#invoice_link').html('<a href="/api/proforma_supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
-                                                    }
-                                                }
-                                                else {
-                                                    if (result.ttyp == 1) {
-                                                        $('#invoice_link').html('<a href="/api/supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Import Invoice</a>');
-                                                    }
-                                                    if (result.ttyp == 4) {
-                                                        $('#invoice_link').html('<a href="/api/supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
-                                                    }
-                                                }
+                                            $('#preview-left .removable').remove();
 
+                                            document.getElementById('company-name').innerHTML = parsedData.companyName;
+                                            document.getElementById('company-address').innerHTML = parsedData.companyLocation;
+                
+                                            let contactString = parsedData.companyPhone + "  ||  " + parsedData.companyMail + "  ||  " 
+                                                    + parsedData.companyWeb;
+                                            document.getElementById('company-contacts').innerHTML = contactString;
+                
+                                            document.getElementById('invoice-date').innerHTML = parsedData.invoiceDate;
+                                            document.getElementById('invoice-no').innerHTML = parsedData.invoiceNumber;
+                                            document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
+                                            document.getElementById('tin').innerHTML = parsedData.tin;
+                                            
+                                            if (parsedData.tradeType == 1) {
+                                                document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
+                                                document.getElementById('agency-td').innerHTML = parsedData.agency;
+                                                document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
+                                                document.getElementById('customer-td').innerHTML = parsedData.customer;
+                                                document.getElementById('main-invoice-td').innerHTML = parsedData.mainInvoice;
+                
+                                                document.getElementById('vessel-td').innerHTML = parsedData.vessel;
+                                                document.getElementById('voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                                document.getElementById('arrival-date-td').innerHTML = parsedData.arrivalDate;
+                                                document.getElementById('departure-date-td').innerHTML = parsedData.departureDate;
+                                                document.getElementById('rotation-number-td').innerHTML = parsedData.rotationNumber;
+                
+                                                document.getElementById('bl-number-td').innerHTML = parsedData.bNumber;
+                                                document.getElementById('boe-number-td').innerHTML = parsedData.boeNumber;
+                                                document.getElementById('do-number-td').innerHTML = parsedData.doNumber;
+                                                document.getElementById('release-date-td').innerHTML = '';
+                                                document.getElementById('containers-td').innerHTML = parsedData.containers;
+                                            } else if (parsedData.tradeType == 4) {
+                                                document.getElementById('shipper-td').innerHTML = parsedData.shipper;
+                                                document.getElementById('ship-line-td').innerHTML = parsedData.shippingLine;
+                                                document.getElementById('exp-customer-td').innerHTML = parsedData.customer;
+                                                document.getElementById('exp-main-invoice-td').innerHTML = parsedData.mainInvoice;
+                
+                                                document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
+                                                document.getElementById('booking-number-td').innerHTML = parsedData.bNumber;
+                                                document.getElementById('booking-date-td').innerHTML = parsedData.bookingDate;
+                                                document.getElementById('exp-activity-td').innerHTML = parsedData.voyageNumber;
+                
+                                                document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
+                
+                                            }
+                
+                                            let midInfo = parsedData.tradeType == 1 ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
+                                            console.log(document.querySelector('div.business'));
+                
+                                            $(midInfo).css('position', 'static');
+                                            let previewLeft = document.getElementById('preview-left');
+                                            console.log(midInfo.cloneNode(true));
+                                            previewLeft.insertBefore(midInfo.cloneNode(true), document.querySelector('div.business'));
+                                            previewLeft.insertBefore(document.createElement('br'), document.querySelector('div.business'));
+                
+                                            let fragment = document.createDocumentFragment();
+                
+                                            parsedData.activities.forEach(activity => {
+                                                let row = document.createElement('tr');
+                                                $(row).attr('class', 'removable');
+                
+                                                let descriptionData = document.createElement('td');
+                                                descriptionData.innerHTML = activity.description;
+                
+                                                let quantityData = document.createElement('td');
+                                                quantityData.innerHTML = activity.qty;
+                                                
+                
+                                                let costData = document.createElement('td');
+                                                costData.setAttribute('class', 'table-money');
+                                                costData.innerHTML = activity.cost;
+                
+                                                let totalCostData = document.createElement('td');
+                                                totalCostData.setAttribute('class', 'table-money');
+                                                totalCostData.innerHTML = activity.total_cost;
+                
+                                                row.append(descriptionData, quantityData, costData, totalCostData);
+                                                fragment.append(row);
+                                            });
+                
+                                            let secondFragment = document.createDocumentFragment();
+                
+                                            parsedData.taxDetails.forEach(taxDetail => {
+                                                let emptyData = document.createElement('td');
+                                                let row = document.createElement('tr');
+                                                $(row).attr('class', 'removable');
+                
+                                                let taxName = document.createElement('th');
+                                                taxName.setAttribute('colspan', '2');
+                                                taxName.innerHTML = taxDetail.details;
+                
+                                                let taxAmount = document.createElement('td');
+                                                taxAmount.setAttribute('class', 'table-money');
+                                                taxAmount.innerHTML = taxDetail.amount;
+                
+                                                row.append(emptyData, taxName, taxAmount);
+                                                secondFragment.append(row);
+                
+                                            });
+                
+                
+                                            let mainTableBody = document.getElementById('main-table');
+                                            console.log(mainTableBody);
+                
+                                            mainTableBody.insertBefore(fragment, (mainTableBody.rows)[0]);
+                
+                                            mainTableBody.insertBefore(secondFragment, (mainTableBody.rows)[mainTableBody.rows.length - 2]);
+                
+                                            document.getElementById('subtotal').innerHTML = parsedData.subtotal;
+                
+                                            document.getElementById('total-tax').innerHTML = parsedData.totalTax;
+                                            document.getElementById('total-amount').innerHTML = parsedData.totalAmount;
+                
+                                            let thirdFragment = document.createDocumentFragment();
+                                            let count = 0;
+                
+                                            parsedData.containerDetails.forEach(containerDetail => {
+                                                let row = document.createElement('tr');
+                                                $(row).attr('class', 'removable');
+                
+                                                let number = document.createElement('td');
+                                                number.innerHTML = ++count;
+                
+                                                let containerNumber = document.createElement('td');
+                                                containerNumber.innerHTML = containerDetail.number;
+                
+                                                let isoType = document.createElement('td');
+                                                isoType.innerHTML = containerDetail.code;
+                
+                                                let containerType = document.createElement('td');
+                                                containerType.innerHTML = containerDetail.containerType;
+                
+                                                let goodDescription = document.createElement('td');
+                                                goodDescription.innerHTML = containerDetail.goods;
+                
+                                                row.append(number, containerNumber, isoType, containerType, goodDescription);
+                                                thirdFragment.append(row);
+                                            });
+                
+                                            document.getElementById('container-list').append(thirdFragment);
+                
+                                            midInfo.style.position = 'absolute';
+                                       
+                
                                                 $('#messages-supp').removeClass('active');
                                                 $('#messages-supp').removeClass('show');
                                                 $('#charge-link').removeClass('active');
                                                 $('#charge-link').removeAttr('href','messages-supp');
-                                                $('#invoice-supp').addClass('active');
-                                                $('#invoice-supp').addClass('show');
-                                                $('#invoice-link').addClass('active');
-                                                $('#invoice-link').attr('href', '#invoice-left');
-                                                $('#homes').removeAttr('href', '#home-left');
-                                            }
+                                                $('#preview-left').addClass('active');
+                                                $('#preview-left').addClass('show');
+                                                $('#preview-link').addClass('active');
+                                                $('#preview-link').attr('href', '#invoice-left');
+                                                // $('#homes').removeAttr('href', '#home-left');
+                                            // }
 
                                         },
                                         error:function () {
@@ -5705,6 +5835,61 @@ var SupplementaryInvoice = {
 
                 }
             }
+        });
+
+        $('#generate-invoice').on('click', function () {
+            
+
+            $.ajax({
+                url: "/api/supp_invoice/add_supp_invoice",
+                type: "POST",
+                data:{
+                    note: note,
+                    minc: invoice_numb,
+                    pdate: s_pDateValue,
+                    prof: SupplementaryInvoice.is_proforma ? 1 : 0,
+                    cntrs: JSON.stringify(list)
+                },
+                success:function(data){
+                    result = $.parseJSON(data);
+
+                    ActivityCheckCharges.checkCharges(result);
+
+                    if (result.st == 2035){
+                        if (SupplementaryInvoice.is_proforma) {
+                            if (result.ttyp == 1){
+                                $('#invoice_link').html('<a href="/api/proforma_supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Import Invoice</a>');
+                            }
+                            if (result.ttyp == 4){
+                                $('#invoice_link').html('<a href="/api/proforma_supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
+                            }
+                        }
+                        else {
+                            if (result.ttyp == 1) {
+                                $('#invoice_link').html('<a href="/api/supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Import Invoice</a>');
+                            }
+                            if (result.ttyp == 4) {
+                                $('#invoice_link').html('<a href="/api/supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
+                            }
+                        }
+
+                        $('#messages-supp').removeClass('active');
+                        $('#messages-supp').removeClass('show');
+                        $('#charge-link').removeClass('active');
+                        $('#charge-link').removeAttr('href','messages-supp');
+                        $('#invoice-supp').addClass('active');
+                        $('#invoice-supp').addClass('show');
+                        $('#invoice-link').addClass('active');
+                        $('#invoice-link').attr('href', '#invoice-left');
+                        $('#homes').removeAttr('href', '#home-left');
+                    }
+
+                },
+                error:function () {
+                    alert('something went wrong');
+                }
+            });
+
         });
         
     }
