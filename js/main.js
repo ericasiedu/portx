@@ -6091,7 +6091,7 @@ var Invoice = {
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
                         if(data.invn != null){
-                            invoice += "<a href='#' onclick='Invoice.viewNote(\"" + data.invi + "," + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
+                            invoice += "<a href='#' onclick='Invoice.viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
                         }
                         if(data.invoice.status == "CANCELLED" || data.invoice.status =="RECALLED"){
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
@@ -7016,7 +7016,7 @@ var InvoiceApproval = {
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
                         if(data.invn != null){
-                            invoice += "<a href='#' onclick='Invoice.viewNote(\"" + data.invi + "," + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
+                            invoice += "<a href='#' onclick='Invoice.viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         return invoice;
@@ -7500,6 +7500,16 @@ var SupplementaryInvoiceApproval = {
         var invoice = document.getElementById("invoice_number1");
         invoice.value = number;
     },
+    viewNote: function(id,number){
+        var header = number;
+        var body = "<div class=\"col-md-12\"><table id=\"view_notes\" class=\"display table-responsive\">" +
+            "<thead><tr><th>Invoice Number </th><th>Note </th><th>Note Type </th><th>User </th></tr></thead>" +
+            "</table></div>";
+
+        CondModal.cModal(header, body);
+
+        SuppsInvoiceNote.initTable(id);
+    },
     cancelInvoice: function(number) {
         var invoice = number;
 
@@ -7608,6 +7618,19 @@ var SupplementaryInvoiceApproval = {
                     }
                 },
                 {
+                    label:"Note Type",
+                    name:"note_type",
+                    type:"select",
+                    options: [
+                        {label: "CANCELLED", value: 1},
+                        {label: "RECALLED", value: 2}
+                    ],
+                    attr:{
+                        class:"form-control",
+                        id:"note_type_id"
+                    }
+                },
+                {
                     label:"Note",
                     name:"note",
                     type:"textarea",
@@ -7622,13 +7645,15 @@ var SupplementaryInvoiceApproval = {
         note_editor.on("create", function () {
            var invoice_number = $("#invoice_number1").val();
            var note = $("#note_id").val();
+           var note_type = $("#note_type_id").val();
 
            $.ajax({
               url:"/api/supp_invoice/add_note",
               type:"POST",
               data:{
                   invn: invoice_number,
-                  note: note
+                  note: note,
+                  ntype: note_type
               },
                success: function (data) {
                   var response = $.parseJSON(data);
@@ -7636,14 +7661,20 @@ var SupplementaryInvoiceApproval = {
                       header = "Add Note Error";
                       body = "Cannot add empty field";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('invoice');
+                      TableRfresh.freshTable('supp_invoice');
                   }
                   else if (response.st == 123){
                       header = "Add Note Error";
-                      body = "Invoice must be unpaid";
+                      body = "Supplementary Invoice must be paid";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('invoice');
+                      TableRfresh.freshTable('supp_invoice');
                   }
+                  else if(response.st == 260){
+                    header = "Add Note Success";
+                    body = "Note Added successful";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('supp_invoice');
+                }
                },
                error:function () {
                    alert("something went wrong");
@@ -7697,6 +7728,10 @@ var SupplementaryInvoiceApproval = {
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.approveInvoice(\"" + data.spnum + "\")' class='depot_cont'>Approve</a><br/>";
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.cancelInvoice(\"" + data.spnum + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.addNote(\"" + data.spnum + "\")' class='depot_cont'>Add Note</a><br/>";
+                        }
+
+                        if(data.invn != null){
+                            invoice += "<a href='#' onclick='SupplementaryInvoiceApproval.viewNote(" + data.invi + ",\"" + data.spnum +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         return invoice;
@@ -8198,7 +8233,7 @@ var SuppInvoice = {
                         }
 
                         if(data.invn != null){
-                            invoice += "<a href='#' onclick='SuppInvoice.viewNote(\"" + data.invi + "," + data.spnum +"\")' class='depot_cont'>View Note</a><br/>";
+                            invoice += "<a href='#' onclick='SuppInvoice.viewNote(" + data.invi + ",\"" + data.spnum +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         if(data.stat == "CANCELLED" || data.stat == "RECALLED"){
