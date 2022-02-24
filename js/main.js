@@ -5837,7 +5837,27 @@ var SupplementaryInvoice = {
             }
         });
 
-        $('#generate-invoice').on('click', function () {
+        $('#invoice_button').on('click', function () {
+            
+            var datePattern = new RegExp("\\d{4}-\\d{2}-\\d{2}");
+            var container_list = document.getElementById('container');
+            var invoice_numb = document.getElementById('sup_invoice_number').value;
+
+            var note = document.getElementById('sup_note').value;
+            var s_pDateValue = document.getElementById('sup_upto_date').value;
+            inputs = container_list.getElementsByTagName('input');
+            var date = new Date();
+            var dd = (date.getDate() < 10 ? '0' : '') + date.getDate();
+            var MM = ((date.getMonth() + 1) < 10 ? '0' : '') + (date.getMonth() + 1);
+            var yyyy = date.getFullYear();
+            var  currentDate = yyyy + "-" + MM + "-" + dd;
+
+            var list = [];
+            for (input in inputs) {
+                if (inputs[input].checked == true) {
+                    list.push(inputs[input].value.split(" ")[0]);
+                }
+            }
             
 
             $.ajax({
@@ -5873,10 +5893,10 @@ var SupplementaryInvoice = {
                             }
                         }
 
-                        $('#messages-supp').removeClass('active');
-                        $('#messages-supp').removeClass('show');
-                        $('#charge-link').removeClass('active');
-                        $('#charge-link').removeAttr('href','messages-supp');
+                        $('#preview-left').removeClass('active');
+                        $('#preview-left').removeClass('show');
+                        $('#preview-link').removeClass('active');
+                        $('#preview-link').removeAttr('href','messages-supp');
                         $('#invoice-supp').addClass('active');
                         $('#invoice-supp').addClass('show');
                         $('#invoice-link').addClass('active');
