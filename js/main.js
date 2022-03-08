@@ -4607,6 +4607,17 @@ var Invoicing = {
 
     is_proforma:false,
 
+    allBoxesChecked: function (boxes) {
+        let verify = true;
+
+        boxes.forEach(box => {
+            if (box.checked == false)
+                verify = false;
+        });
+
+        return verify;
+    },
+
     initialize: function () {
 
         var checkTrade, checkB, checkCurrency, checkTax;
@@ -4672,6 +4683,9 @@ var Invoicing = {
             }
 
         });
+
+        let selectAllCheck;
+        let containerChecks;
 
 
         $('#next').on('click', function() {
@@ -4816,18 +4830,47 @@ var Invoicing = {
                                         list.appendChild(label);
 
                                         container_list.appendChild(list);
-
-                                        $('#home-left').removeClass('active');
-                                        $('#home-left').removeClass('show');
-                                        $('#homes').removeClass('active');
-                                        $('#profile-left').addClass('active');
-                                        $('#profile-left').addClass('show');
-                                        $('#profiles').addClass('active');
                                     }
+
+                                    $('#home-left').removeClass('active');
+                                    $('#home-left').removeClass('show');
+                                    $('#homes').removeClass('active');
+                                    $('#profile-left').addClass('active');
+                                    $('#profile-left').addClass('show');
+                                    $('#profiles').addClass('active');
                                 }
                                 else {
                                     var containers = result.cntr.join(', ');
                                     $('#error_label').text("Container numbers " + containers + " do not have info.");
+                                }
+
+                                if (available_containers.length > 1) {
+                                    document.getElementById('select-all-panel').style.display = 'block';
+                                    selectAllCheck = document.getElementById('select-all');
+                                    containerChecks = document.querySelectorAll('#container .custom-control-input');
+
+                                    selectAllCheck.addEventListener('change', function (e) {
+                                        let checkedStatus = e.target.checked;
+                                        if (checkedStatus) {
+                                            containerChecks.forEach(checkbox => {
+                                                checkbox.checked = true;
+                                            });
+                                        } else {
+                                            containerChecks.forEach(checkbox => {
+                                                if (checkbox.checked)
+                                                    checkbox.checked = false;
+                                            });
+                                        }
+                                    }, false);
+
+                                    containerChecks.forEach(checkbox => {
+                                        checkbox.addEventListener('change', function (e) {
+                                            if (e.target.checked && Invoicing.allBoxesChecked(containerChecks))
+                                                selectAllCheck.checked = true;
+                                            else
+                                                selectAllCheck.checked = false;
+                                        })
+                                    });
                                 }
                             }
                             else {
@@ -5384,9 +5427,23 @@ var Invoicing = {
 var SupplementaryInvoice = {
     is_proforma : false,
 
+    allBoxesChecked: function (boxes) {
+        let verify = true;
+
+        boxes.forEach(box => {
+            if (box.checked == false)
+                verify = false;
+        });
+
+        return verify;
+    },
+
     iniTable: function () {
 
         var suppContainers = [];
+
+        let selectAllCheck;
+        let containerChecks;
 
         $('#supp_next').on('click', function () {
 
@@ -5467,7 +5524,35 @@ var SupplementaryInvoice = {
                             }
                         }
 
+                        if (list_containers.length > 1) {
+                            document.getElementById('select-all-panel').style.display = 'block';
+                            selectAllCheck = document.getElementById('select-all');
+                            containerChecks = document.querySelectorAll('#container .custom-control-input');
 
+                            selectAllCheck.addEventListener('change', function (e) {
+                                let checkedStatus = e.target.checked;
+                                // console.log(checkedStatus);
+                                if (checkedStatus) {
+                                    containerChecks.forEach(checkbox => {
+                                        checkbox.checked = true;
+                                    });
+                                } else {
+                                    containerChecks.forEach(checkbox => {
+                                        if (checkbox.checked)
+                                            checkbox.checked = false;
+                                    });
+                                }
+                            }, false);
+
+                            containerChecks.forEach(checkbox => {
+                                checkbox.addEventListener('change', function (e) {
+                                    if (e.target.checked && Invoicing.allBoxesChecked(containerChecks))
+                                        selectAllCheck.checked = true;
+                                    else
+                                        selectAllCheck.checked = false;
+                                })
+                            });
+                        }
                     },
                     error:function () {
                         alert('something went wrong');
