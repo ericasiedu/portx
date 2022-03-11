@@ -406,3 +406,16 @@ div.mid-info {
 .table-money {
     text-align: right;
 }
+
+div#select-all-panel {
+    display: none;
+}
+
+div#select-all-panel>label {
+    padding-left: 40px;
+}
+
+#select-all-panel hr {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
