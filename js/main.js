@@ -2818,7 +2818,7 @@ var SuppsInvoiceNote={
               
               {
                     label: "Note:",
-                    name: "supp_invoice_note.note",
+                    name: "supplementary_note.note",
                     type: "textarea",
                     attr: {
                         class: "form-control"
@@ -2840,6 +2840,49 @@ var SuppsInvoiceNote={
             columns: [
                 { data: "numb" },
                 { data: "supplementary_note.note" },
+                { data: "ntype" },
+                { data: "user" }
+            ],
+            select: true,
+            buttons: [
+                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+            ]
+        });
+    }
+}
+
+var ProformaInvoiceNote={
+    initTable: function(invoice_id){
+
+          edit_note = new $.fn.dataTable.Editor( {
+            ajax: "/api/proforma_invoice_note/table",
+            table: "#view_notes",
+            fields: [
+              
+              {
+                    label: "Note:",
+                    name: "proforma_invoice_note.note",
+                    type: "textarea",
+                    attr: {
+                        class: "form-control"
+                    }
+                }]
+        });
+
+        $('#view_notes').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/proforma_invoice_note/table",
+                type: "POST",
+                data: {
+                    "record": invoice_id
+                }
+            },
+            searching:false,
+            serverSide: true,
+            columns: [
+                { data: "numb" },
+                { data: "proforma_invoice_note.note" },
                 { data: "ntype" },
                 { data: "user" }
             ],
@@ -5943,7 +5986,8 @@ var Invoice = {
             url:"/api/invoice_status/recall_invoice",
             type:"POST",
             data:{
-                invn: number
+                invn: number,
+                prof: 1
             },
              success: function (data) {
                 var response = $.parseJSON(data);
@@ -8465,6 +8509,43 @@ var SuppInvoice = {
 }
 
 var ProformaInvoice = {
+    recallInvoice:function(number){
+        var header =  '';
+        var body = '';
+        $.ajax({
+            url:"/api/invoice_status/recall_invoice",
+            type:"POST",
+            data:{
+                invn: number,
+                prof: 1
+            },
+             success: function (data) {
+                var response = $.parseJSON(data);
+                if(response.st == 1133){
+                    header = "Recalled Error";
+                    body = "Invoiced has not be assigned reason";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('proforma_invoice');
+                }
+                else if (response.st == 1134){
+                    header = "Recalled Error";
+                    body = "Container(s) have been invoiced";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('proforma_invoice');
+                }
+                else if (response.st == 260){
+                    header = "Recalled";
+                    body = "Invoice have been recalled";
+                    Modaler.dModal(header,body);
+                    TableRfresh.freshTable('proforma_invoice');
+                }
+             },
+             error:function () {
+                 alert("something went wrong");
+             }
+         });
+    },
+
     cancelInvoice: function(number) {
         var invoice = number;
 
@@ -8478,7 +8559,12 @@ var ProformaInvoice = {
         request.onload = function() {
             if (request.readyState == 4 && request.status == 200) {
                 var response = JSON.parse(request.responseText);
-
+                if (response.st == 121){
+                    header = "CANCELLATION ERROR";
+                    body = "Note not added to invoice for cancellation";
+                    Modaler.dModal(header,body)
+                    TableRfresh.freshTable('proforma_invoice');
+                }
                 if (response.st == 120){
                     header = "Deferred Error";
                     body = "Deferral refused, some containers have gated out.";
@@ -8620,8 +8706,105 @@ var ProformaInvoice = {
             focus: null
         } );
     },
+    addNote:function(number){
+        note_editor.create({
+            title: 'Add Note',
+            buttons: 'Add',
+        });
+        var invoice = document.getElementById("invoice_number1");
+        invoice.value = number;
+    },
+
+    viewNote: function(id,number){
+        var header = number;
+        var body = "<div class=\"col-md-12\"><table id=\"view_notes\" class=\"display table-responsive\">" +
+            "<thead><tr><th>Invoice Number </th><th>Note </th><th>Note Type </th><th>User </th></tr></thead>" +
+            "</table></div>";
+
+        CondModal.cModal(header, body);
+
+        ProformaInvoiceNote.initTable(id);
+    },
 
     iniTable: function () {
+
+        note_editor = new $.fn.dataTable.Editor({
+            fields:[
+                {
+                    label:"Number",
+                    name:"number",
+                    attr:{
+                        class:"form-control",
+                        id:"invoice_number1",
+                        disabled: true
+                    }
+                },
+                {
+                    label:"Note Type",
+                    name:"note_type",
+                    type:"select",
+                    options: [
+                        {label: "CANCELLED", value: 1},
+                        {label: "RECALLED", value: 2}
+                    ],
+                    attr:{
+                        class:"form-control",
+                        id:"note_type_id"
+                    }
+                },
+                {
+                    label:"Note",
+                    name:"note",
+                    type:"textarea",
+                    attr:{
+                        class:"form-control",
+                        id:"note_id"
+                    }
+                }
+            ]
+        });
+
+        note_editor.on("create", function () {
+            var invoice_number = this.field('number');
+            var note = this.field('note');
+            var note_type = this.field('note_type');
+
+           $.ajax({
+              url:"/api/proforma_invoice/add_note",
+              type:"POST",
+              data:{
+                  invn: invoice_number.val(),
+                  note: note.val(),
+                  ntype: note_type.val()
+              },
+               success: function (data) {
+                  var response = $.parseJSON(data);
+                  if (response.st == 122){
+                    //   note.error("empty fields");
+                      header = "Add Note Error";
+                      body = "Cannot add empty field";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('proforma_invoice');
+                  }
+                  else if (response.st == 123){
+                      header = "Add Note Error";
+                      body = "Invoice must be unpaid";
+                      Modaler.dModal(header,body);
+                      TableRfresh.freshTable('proforma_invoice');
+                  }
+                      else if(response.st == 260){
+                        header = "Add Note Success";
+                        body = "Note Added successful";
+                        Modaler.dModal(header,body);
+                        TableRfresh.freshTable('proforma_invoice');
+                    }
+               },
+               error:function () {
+                   alert("something went wrong");
+               }
+           });
+
+        });
 
         $('#proforma_invoice').DataTable({
             dom: "Bfrtip",
@@ -8661,10 +8844,20 @@ var ProformaInvoice = {
 
                         if (data.proforma_invoice.status == 'UNPAID'  || data.proforma_invoice.status == 'DEFERRED'){
                             invoice += "<a href='#' onclick='ProformaInvoice.cancelInvoice(\"" + data.proforma_invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
+                            invoice += "<a href='#' onclick='ProformaInvoice.addNote(\"" + data.proforma_invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
+                        }
+                        if(data.invn != null){
+                            invoice += "<a href='#' onclick='ProformaInvoice.viewNote(" + data.invi + ",\"" + data.proforma_invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         if (data.proforma_invoice.status != 'CANCELLED'  && data.proforma_invoice.status != 'EXPIRED') {
                             invoice += "<a href='#' onclick='ProformaInvoice.addWaiver(\"" + data.proforma_invoice.number + "\", \"" + data.currency.code + "\", " + data.proforma_invoice.cost + ")' class='depot_cont'>Add Waiver</a><br/>";
+                        }
+                        if(data.proforma_invoice.status == "CANCELLED" || data.proforma_invoice.status =="RECALLED"){
+                            invoice += "<a href='#' onclick='ProformaInvoice.addNote(\"" + data.proforma_invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
+                        }
+                        if(data.invs == "recallable" && data.proforma_invoice.status != "RECALLED"){
+                            invoice += "<a href='#' onclick='ProformaInvoice.recallInvoice(\"" + data.proforma_invoice.number + "\")' class='depot_cont'>Recall Invoice</a><br/>";
                         }
 
                         return invoice;
