@@ -5313,6 +5313,12 @@ var Invoicing = {
 
                             var header, body;
 
+                            if(result.st == 1432){
+                                header = "Container Depot Info Error";
+                                body = "Containers depot info has not been added";
+                                Modaler.dModal(header,body);
+                            }
+
                             if (result.st == 1560){
                                 header = "Container Depot Error";
                                 body = "Containers selected are both in Depot and UCL";
@@ -8910,7 +8916,7 @@ var ProformaInvoice = {
                 {data: "proforma_invoice.cost"},
                 {data: "proforma_invoice.tax"},
                 {data: "tax_type.name"},
-                {data: "proforma_invoice.note", visible:false},
+                {data: "note", visible:false},
                 {data: "customer.name"},
                 {data: "proforma_invoice.user_id", visible:false},
                 {data: "proforma_invoice.date", visible:false},
