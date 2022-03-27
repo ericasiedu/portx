@@ -1133,6 +1133,13 @@ var GateIn = {
                         id: "full_stat",
                         class: "form-control"
                     }
+                },
+                {
+                    label: "System Waybill",
+                    name: "gate_record.sys_waybill",
+                    attr: {
+                        class: "form-control"
+                    }
                 }, {
                     label: "EIR/Waybill No:",
                     name: "gate_record.waybill",
@@ -1160,6 +1167,7 @@ var GateIn = {
                 }]
         });
 
+        editor.field('gate_record.sys_waybill').hide();
         editor.field('gate_record.status').hide();
         editor.field('gate_record.type').hide();
         editor.field('gate_record.user_id').hide();
@@ -6077,8 +6085,7 @@ var Invoice = {
             url:"/api/invoice_status/recall_invoice",
             type:"POST",
             data:{
-                invn: number,
-                prof: 1
+                invn: number
             },
              success: function (data) {
                 var response = $.parseJSON(data);
@@ -7356,7 +7363,7 @@ var InvoiceApproval = {
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
                         if(data.invn != null){
-                            invoice += "<a href='#' onclick='Invoice.viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
+                            invoice += "<a href='#' onclick='InvoiceApproval.viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         return invoice;
@@ -12190,7 +12197,7 @@ var ContainerHistory={
             },
             serverSide: true,
             columnDefs: [
-                { "searchable": false, "targets": 4 }
+                { "searchable": false, "targets": 6 }
             ],
             columns: [
                 {data: "id"},
