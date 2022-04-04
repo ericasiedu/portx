@@ -1095,6 +1095,8 @@ var GateIn = {
                     attr: {
                         id: 'consignee',
                         class: "form-control",
+                        list:"customers_name",
+                        id: 'consignee',
                         maxlength: 255,
                     }
                 }, {
@@ -1547,6 +1549,7 @@ var GateIn = {
             var number = editor.field('gate_record.container_id').val();
             GateIn.getContainerInfo(number);
         });
+        
 
         var container_number_error = false;
 
@@ -3146,6 +3149,7 @@ var DepotOver = {
             $('.modal').removeAttr('tabindex');
         });
 
+
         actEditor.on('open', function () {
             $('.modal').removeAttr('tabindex');
         });
@@ -3562,7 +3566,7 @@ var ProformaDepotOver = {
                 }
             },
             columnDefs: [{type: 'date', 'targets': [3]}],
-            order: [[3, 'asc']],
+            order: [[4, 'asc']],
             serverSide: true,
             columns: [
                 {data: "name"},
@@ -7363,7 +7367,7 @@ var InvoiceApproval = {
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
                         if(data.invn != null){
-                            invoice += "<a href='#' onclick='InvoiceApproval.viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
+                            invoice += "<a href='#' onclick='InvoiceApprovalcd .viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         return invoice;
@@ -12202,6 +12206,8 @@ var ContainerHistory={
             columns: [
                 {data: "id"},
                 {data: "num"},
+                {data: "blnum"},
+                {data: "bknum"},
                 {data: "trty"},
                 {data: "len"},
                 {data: "gtin"},
