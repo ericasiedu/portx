@@ -2794,6 +2794,10 @@ var InvoiceNote={
                 }]
         });
 
+        edit_note.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
         $('#view_notes').DataTable( {
             dom: "Bfrtip",
             ajax: {
@@ -2813,7 +2817,7 @@ var InvoiceNote={
             ],
             select: true,
             buttons: [
-                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+                { extend: "edit", editor: edit_note,formTitle:"Edit Note", className:"btn btn-primary" }
             ]
         });
     }
@@ -2837,6 +2841,10 @@ var SuppsInvoiceNote={
                 }]
         });
 
+        edit_note.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
         $('#view_notes').DataTable( {
             dom: "Bfrtip",
             ajax: {
@@ -2856,7 +2864,7 @@ var SuppsInvoiceNote={
             ],
             select: true,
             buttons: [
-                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+                { extend: "edit", editor: edit_note,formTitle:"Edit Note", className:"btn btn-primary" }
             ]
         });
     }
@@ -2880,6 +2888,10 @@ var ProformaInvoiceNote={
                 }]
         });
 
+        edit_note.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
         $('#view_notes').DataTable( {
             dom: "Bfrtip",
             ajax: {
@@ -2899,7 +2911,7 @@ var ProformaInvoiceNote={
             ],
             select: true,
             buttons: [
-                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+                { extend: "edit", editor: edit_note,formTitle:"Edit Note", className:"btn btn-primary" }
             ]
         });
     }
@@ -3185,9 +3197,6 @@ var DepotOver = {
             ]
         });
 
-        // actEditor.on('preRemove', function () {
-        //    alert('ok');
-        // });
 
     },
 
