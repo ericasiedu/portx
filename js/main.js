@@ -5021,160 +5021,169 @@ var Invoicing = {
                             cont: JSON.stringify(list)
                         },
                         success: function (data) {
-                            console.log(data);
                             let parsedData = JSON.parse(data);
-                            console.log(parsedData);
-                            $('#preview-left .removable').remove();
-
-                            document.getElementById('company-name').innerHTML = parsedData.companyName;
-                            document.getElementById('company-address').innerHTML = parsedData.companyLocation;
-
-                            let contactString = parsedData.companyPhone + "  ||  " + parsedData.companyMail + "  ||  " 
-                                    + parsedData.companyWeb;
-                            document.getElementById('company-contacts').innerHTML = contactString;
-
-                            document.getElementById('invoice-date').innerHTML = parsedData.invoiceDate;
-                            document.getElementById('invoice-no').innerHTML = parsedData.invoiceNumber;
-                            document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
-                            document.getElementById('tin').innerHTML = parsedData.tin;
-                            
-                            if (trade == '11') {
-                                document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
-                                document.getElementById('agency-td').innerHTML = parsedData.agency;
-                                document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
-                                document.getElementById('customer-td').innerHTML = parsedData.customer;
-
-                                document.getElementById('vessel-td').innerHTML = parsedData.vessel;
-                                document.getElementById('voyage-no-td').innerHTML = parsedData.voyageNumber;
-                                document.getElementById('arrival-date-td').innerHTML = parsedData.arrivalDate;
-                                document.getElementById('departure-date-td').innerHTML = parsedData.departureDate;
-                                document.getElementById('rotation-number-td').innerHTML = parsedData.rotationNumber;
-
-                                document.getElementById('bl-number-td').innerHTML = parsedData.bNumber;
-                                document.getElementById('boe-number-td').innerHTML = parsedData.boeNumber;
-                                document.getElementById('do-number-td').innerHTML = parsedData.doNumber;
-                                document.getElementById('release-date-td').innerHTML = '';
-                                document.getElementById('containers-td').innerHTML = parsedData.containers;
-                            } else if (trade == '21') {
-                                document.getElementById('shipper-td').innerHTML = parsedData.shipper;
-                                document.getElementById('ship-line-td').innerHTML = parsedData.shippingLine;
-                                document.getElementById('exp-customer-td').innerHTML = parsedData.customer;
-
-                                document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
-                                document.getElementById('exp-voyage-no-td').innerHTML = parsedData.voyageNumber;
-                                document.getElementById('booking-number-td').innerHTML = parsedData.bNumber;
-                                document.getElementById('booking-date-td').innerHTML = parsedData.bookingDate;
-
-                                document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
-
+                            if(parsedData.st == 1210){
+                                var load_status = parsedData.stat;
+                                var length = parsedData.len;
+                                var activity = parsedData.act;
+                                var goods = parsedData.good;
+                                header = 'Error';
+                                body = 'No Charges for container length '+ length + ' feet with load status '+load_status + ', '+activity+', '+goods;
+                                Modaler.dModal(header, body);
                             }
+                            else{
+                                $('#preview-left .removable').remove();
 
-                            let midInfo = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
-                            console.log(document.querySelector('div.business'));
-
-                            $(midInfo).css('position', 'static');
-                            let previewLeft = document.getElementById('preview-left');
-                            console.log(midInfo.cloneNode(true));
-                            previewLeft.insertBefore(midInfo.cloneNode(true), document.querySelector('div.business'));
-                            previewLeft.insertBefore(document.createElement('br'), document.querySelector('div.business'));
-
-                            let fragment = document.createDocumentFragment();
-
-                            parsedData.activities.forEach(activity => {
-                                let row = document.createElement('tr');
-                                $(row).attr('class', 'removable');
-
-                                let descriptionData = document.createElement('td');
-                                descriptionData.innerHTML = activity.description;
-
-                                let quantityData = document.createElement('td');
-                                quantityData.innerHTML = activity.qty;
+                                document.getElementById('company-name').innerHTML = parsedData.companyName;
+                                document.getElementById('company-address').innerHTML = parsedData.companyLocation;
+    
+                                let contactString = parsedData.companyPhone + "  ||  " + parsedData.companyMail + "  ||  " 
+                                        + parsedData.companyWeb;
+                                document.getElementById('company-contacts').innerHTML = contactString;
+    
+                                document.getElementById('invoice-date').innerHTML = parsedData.invoiceDate;
+                                document.getElementById('invoice-no').innerHTML = parsedData.invoiceNumber;
+                                document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
+                                document.getElementById('tin').innerHTML = parsedData.tin;
                                 
-
-                                let costData = document.createElement('td');
-                                costData.setAttribute('class', 'table-money');
-                                costData.innerHTML = activity.cost;
-
-                                let totalCostData = document.createElement('td');
-                                totalCostData.setAttribute('class', 'table-money');
-                                totalCostData.innerHTML = activity.total_cost;
-
-                                row.append(descriptionData, quantityData, costData, totalCostData);
-                                fragment.append(row);
-                            });
-
-                            let secondFragment = document.createDocumentFragment();
-
-                            parsedData.taxDetails.forEach(taxDetail => {
-                                let emptyData = document.createElement('td');
-                                let row = document.createElement('tr');
-                                $(row).attr('class', 'removable');
-
-                                let taxName = document.createElement('th');
-                                taxName.setAttribute('colspan', '2');
-                                taxName.innerHTML = taxDetail.details;
-
-                                let taxAmount = document.createElement('td');
-                                taxAmount.setAttribute('class', 'table-money');
-                                taxAmount.innerHTML = taxDetail.amount;
-
-                                row.append(emptyData, taxName, taxAmount);
-                                secondFragment.append(row);
-
-                            });
-
-
-                            let mainTableBody = document.getElementById('main-table');
-                            console.log(mainTableBody);
-
-                            mainTableBody.insertBefore(fragment, (mainTableBody.rows)[0]);
-
-                            mainTableBody.insertBefore(secondFragment, (mainTableBody.rows)[mainTableBody.rows.length - 2]);
-
-                            document.getElementById('subtotal').innerHTML = parsedData.subtotal;
-
-                            document.getElementById('total-tax').innerHTML = parsedData.totalTax;
-                            document.getElementById('total-amount').innerHTML = parsedData.totalAmount;
-
-                            let thirdFragment = document.createDocumentFragment();
-                            let count = 0;
-
-                            parsedData.containerDetails.forEach(containerDetail => {
-                                let row = document.createElement('tr');
-                                $(row).attr('class', 'removable');
-
-                                let number = document.createElement('td');
-                                number.innerHTML = ++count;
-
-                                let containerNumber = document.createElement('td');
-                                containerNumber.innerHTML = containerDetail.number;
-
-                                let isoType = document.createElement('td');
-                                isoType.innerHTML = containerDetail.code;
-
-                                let containerType = document.createElement('td');
-                                containerType.innerHTML = containerDetail.containerType;
-
-                                let goodDescription = document.createElement('td');
-                                goodDescription.innerHTML = containerDetail.goods;
-
-                                row.append(number, containerNumber, isoType, containerType, goodDescription);
-                                thirdFragment.append(row);
-                            });
-
-                            document.getElementById('container-list').append(thirdFragment);
-
-                            midInfo.style.position = 'absolute';
-                       
-                            $('#messages-left').removeClass('active');
-                            $('#messages-left').removeClass('show');
-                            $('#charge-link').removeClass('active');
-                            $('#charge-link').removeAttr('href', '#messages-left');
-                            $('#preview-left').addClass('active');
-                            $('#preview-left').addClass('show');
-                            $('#preview-link').addClass('active');
-                            $('#preview-link').attr('href', '#preview-left');
-                            // $('#homes').removeAttr('href', '#home-left');
+                                if (trade == '11') {
+                                    document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
+                                    document.getElementById('agency-td').innerHTML = parsedData.agency;
+                                    document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
+                                    document.getElementById('customer-td').innerHTML = parsedData.customer;
+    
+                                    document.getElementById('vessel-td').innerHTML = parsedData.vessel;
+                                    document.getElementById('voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                    document.getElementById('arrival-date-td').innerHTML = parsedData.arrivalDate;
+                                    document.getElementById('departure-date-td').innerHTML = parsedData.departureDate;
+                                    document.getElementById('rotation-number-td').innerHTML = parsedData.rotationNumber;
+    
+                                    document.getElementById('bl-number-td').innerHTML = parsedData.bNumber;
+                                    document.getElementById('boe-number-td').innerHTML = parsedData.boeNumber;
+                                    document.getElementById('do-number-td').innerHTML = parsedData.doNumber;
+                                    document.getElementById('release-date-td').innerHTML = '';
+                                    document.getElementById('containers-td').innerHTML = parsedData.containers;
+                                } else if (trade == '21') {
+                                    document.getElementById('shipper-td').innerHTML = parsedData.shipper;
+                                    document.getElementById('ship-line-td').innerHTML = parsedData.shippingLine;
+                                    document.getElementById('exp-customer-td').innerHTML = parsedData.customer;
+    
+                                    document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
+                                    document.getElementById('exp-voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                    document.getElementById('booking-number-td').innerHTML = parsedData.bNumber;
+                                    document.getElementById('booking-date-td').innerHTML = parsedData.bookingDate;
+    
+                                    document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
+    
+                                }
+    
+                                let midInfo = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
+                                console.log(document.querySelector('div.business'));
+    
+                                $(midInfo).css('position', 'static');
+                                let previewLeft = document.getElementById('preview-left');
+                                console.log(midInfo.cloneNode(true));
+                                previewLeft.insertBefore(midInfo.cloneNode(true), document.querySelector('div.business'));
+                                previewLeft.insertBefore(document.createElement('br'), document.querySelector('div.business'));
+    
+                                let fragment = document.createDocumentFragment();
+    
+                                parsedData.activities.forEach(activity => {
+                                    let row = document.createElement('tr');
+                                    $(row).attr('class', 'removable');
+    
+                                    let descriptionData = document.createElement('td');
+                                    descriptionData.innerHTML = activity.description;
+    
+                                    let quantityData = document.createElement('td');
+                                    quantityData.innerHTML = activity.qty;
+                                    
+    
+                                    let costData = document.createElement('td');
+                                    costData.setAttribute('class', 'table-money');
+                                    costData.innerHTML = activity.cost;
+    
+                                    let totalCostData = document.createElement('td');
+                                    totalCostData.setAttribute('class', 'table-money');
+                                    totalCostData.innerHTML = activity.total_cost;
+    
+                                    row.append(descriptionData, quantityData, costData, totalCostData);
+                                    fragment.append(row);
+                                });
+    
+                                let secondFragment = document.createDocumentFragment();
+    
+                                parsedData.taxDetails.forEach(taxDetail => {
+                                    let emptyData = document.createElement('td');
+                                    let row = document.createElement('tr');
+                                    $(row).attr('class', 'removable');
+    
+                                    let taxName = document.createElement('th');
+                                    taxName.setAttribute('colspan', '2');
+                                    taxName.innerHTML = taxDetail.details;
+    
+                                    let taxAmount = document.createElement('td');
+                                    taxAmount.setAttribute('class', 'table-money');
+                                    taxAmount.innerHTML = taxDetail.amount;
+    
+                                    row.append(emptyData, taxName, taxAmount);
+                                    secondFragment.append(row);
+    
+                                });
+    
+    
+                                let mainTableBody = document.getElementById('main-table');
+                                console.log(mainTableBody);
+    
+                                mainTableBody.insertBefore(fragment, (mainTableBody.rows)[0]);
+    
+                                mainTableBody.insertBefore(secondFragment, (mainTableBody.rows)[mainTableBody.rows.length - 2]);
+    
+                                document.getElementById('subtotal').innerHTML = parsedData.subtotal;
+    
+                                document.getElementById('total-tax').innerHTML = parsedData.totalTax;
+                                document.getElementById('total-amount').innerHTML = parsedData.totalAmount;
+    
+                                let thirdFragment = document.createDocumentFragment();
+                                let count = 0;
+    
+                                parsedData.containerDetails.forEach(containerDetail => {
+                                    let row = document.createElement('tr');
+                                    $(row).attr('class', 'removable');
+    
+                                    let number = document.createElement('td');
+                                    number.innerHTML = ++count;
+    
+                                    let containerNumber = document.createElement('td');
+                                    containerNumber.innerHTML = containerDetail.number;
+    
+                                    let isoType = document.createElement('td');
+                                    isoType.innerHTML = containerDetail.code;
+    
+                                    let containerType = document.createElement('td');
+                                    containerType.innerHTML = containerDetail.containerType;
+    
+                                    let goodDescription = document.createElement('td');
+                                    goodDescription.innerHTML = containerDetail.goods;
+    
+                                    row.append(number, containerNumber, isoType, containerType, goodDescription);
+                                    thirdFragment.append(row);
+                                });
+    
+                                document.getElementById('container-list').append(thirdFragment);
+    
+                                midInfo.style.position = 'absolute';
+                           
+                                $('#messages-left').removeClass('active');
+                                $('#messages-left').removeClass('show');
+                                $('#charge-link').removeClass('active');
+                                $('#charge-link').removeAttr('href', '#messages-left');
+                                $('#preview-left').addClass('active');
+                                $('#preview-left').addClass('show');
+                                $('#preview-link').addClass('active');
+                                $('#preview-link').attr('href', '#preview-left');
+                                // $('#homes').removeAttr('href', '#home-left');
+                            }
 
                         },
                         error: function () {
@@ -9231,7 +9240,7 @@ var SupPayment = {
     }
 }
 
-var InvoiceReports = {
+var InvoiceReports = {    
     iniTable: function () {
 
         $('#invoice_reports').DataTable({
@@ -9266,9 +9275,78 @@ var InvoiceReports = {
                             var result = $.parseJSON(data);
                             if (result.st == 232) {
 
-                                $( api.column( 8 ).footer() ).html(
-                                    'Total Cost('+result.total +')'
+                                $(api.column(0).footer()).html(
+                                    ''
                                 );
+
+                                $(api.column(1).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(2).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(3).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(4).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(5).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(6).footer()).html(
+                                    'GHS '+ result.total
+                                );
+
+                                $(api.column(7).footer()).html(
+                                    result.wpct+'%'
+                                );
+
+                                $(api.column(8).footer()).html(
+                                    'GHS '+result.wamt
+                                );
+
+                                $(api.column(9).footer()).html(
+                                    ''
+                                );
+
+                                $( api.column( 10 ).footer() ).html(
+                                   ''
+                                );
+
+                                $(api.column(11).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(12).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(13).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(14).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(15).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(16).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(17).footer()).html(
+                                    ''
+                                );
+
                             }
                         },
                         error:function () {
@@ -10628,6 +10706,10 @@ var GateReport = {
 }
 
 var PaymentReport = {
+    formatMoney: function(number) {
+        return number.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+    },
+
     iniTable: function () {
         $('#payment_report').DataTable( {
             dom: "Bfrtip",
@@ -10643,6 +10725,7 @@ var PaymentReport = {
                 }
             },
             serverSide: true,
+            order: [[ 17, 'desc' ]],
             columns: [
                 { data: "rcpn" },
                 { data: "inv" },
@@ -10654,6 +10737,12 @@ var PaymentReport = {
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "tax",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "vat",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
+                { data: "getF",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
+                { data: "nhil",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ),visible:false },
                 { data: "paid",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "bank", visible:false},
@@ -10680,20 +10769,65 @@ var PaymentReport = {
                     success:function (data) {
                         var result = $.parseJSON(data);
                         if (result.st == 230) {
+
                             $(api.column(0).footer()).html(
-                                'Total Paid: GHS ' + result.tpay
+                                ''
+                            );
+
+                            $(api.column(1).footer()).html(
+                                ''
                             );
 
                             $(api.column(2).footer()).html(
-                                'VAT: GHS ' + result.vat
+                               ''
                             );
 
+                            $(api.column(3).footer()).html(
+                                'GHS ' + result.cost
+                            );
+
+                            $(api.column(4).footer()).html(
+                               result.wpct+'%'
+                             );
+
                             $(api.column(5).footer()).html(
-                                'NHIL: GHS ' + result.nhil
+                                'GHS '+ result.wamt
+                            ); 
+
+                            $(api.column(6).footer()).html(
+                                'GHS ' + result.tax
+                            ); 
+
+                            $(api.column(7).footer()).html(
+                                'GHS ' + result.vat
                             );
 
                             $(api.column(8).footer()).html(
-                                'GET Fund: GHS ' + result.getf
+                                'GHS ' + result.getf
+                            );
+
+                            $(api.column(9).footer()).html(
+                                'GHS ' + result.nhil
+                            );
+
+                            $(api.column(10).footer()).html(
+                                'GHS ' + result.tpay
+                            );
+
+                            $(api.column(11).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(12).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(13).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(14).footer()).html(
+                                ''
                             );
                         }
                     },
@@ -10806,7 +10940,6 @@ var SummaryRemittance = {
     formatMoney: function(number) {
         return number.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
     },
-    
 
     iniTable: function () {
         $('#summary_remittance').DataTable( {
