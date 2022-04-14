@@ -4774,7 +4774,6 @@ var Invoicing = {
 
             var failed = false;
 
-            // alert(customer);
             if (customer == '') {
                 $('#customer_error').text('Customer field cannot be empty');
                 failed = true;
@@ -5027,8 +5026,13 @@ var Invoicing = {
                                 var length = parsedData.len;
                                 var activity = parsedData.act;
                                 var goods = parsedData.good;
-                                header = 'Error';
+                                header = 'Invoicing Error';
                                 body = 'No Charges for container length '+ length + ' feet with load status '+load_status + ', '+activity+', '+goods;
+                                Modaler.dModal(header, body);
+                            }
+                            else if(parsedData.st == 1211){
+                                header = 'Invoicing Error';
+                                body = 'No Activity or Storage Charges to be invoice';
                                 Modaler.dModal(header, body);
                             }
                             else{
