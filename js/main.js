@@ -4774,7 +4774,6 @@ var Invoicing = {
 
             var failed = false;
 
-            // alert(customer);
             if (customer == '') {
                 $('#customer_error').text('Customer field cannot be empty');
                 failed = true;
@@ -5022,16 +5021,7 @@ var Invoicing = {
                         },
                         success: function (data) {
                             let parsedData = JSON.parse(data);
-                            if(parsedData.st == 1210){
-                                var load_status = parsedData.stat;
-                                var length = parsedData.len;
-                                var activity = parsedData.act;
-                                var goods = parsedData.good;
-                                header = 'Error';
-                                body = 'No Charges for container length '+ length + ' feet with load status '+load_status + ', '+activity+', '+goods;
-                                Modaler.dModal(header, body);
-                            }
-                            else{
+                            if( ActivityCheckCharges.checkCharges(parsedData) && parsedData.st == 2844){
                                 $('#preview-left .removable').remove();
 
                                 document.getElementById('company-name').innerHTML = parsedData.companyName;
@@ -5182,9 +5172,7 @@ var Invoicing = {
                                 $('#preview-left').addClass('show');
                                 $('#preview-link').addClass('active');
                                 $('#preview-link').attr('href', '#preview-left');
-                                // $('#homes').removeAttr('href', '#home-left');
                             }
-
                         },
                         error: function () {
                             $('#manualHeader').text('ERROR');
