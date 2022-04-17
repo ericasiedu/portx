@@ -2085,6 +2085,8 @@ var GateOut= {
                     class: "form-control",
                     list:"container_out",
                     onselect:"GateOut.getDrivers()",
+                    onkeyup: "GateOut.getDrivers()",
+                    onchange:"GateOut.getDrivers()",
                     maxlength: 11,
                     id: "container"
                 }
