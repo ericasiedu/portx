@@ -4649,6 +4649,7 @@ var LetPass = {
             },
             serverSide: true,
             columnDefs: [ { "searchable": false, "targets": 4 } ],
+            order: [[ 2, 'desc' ]],
             columns: [
                 { data: "lnum" },
                 { data: "invd"},
@@ -12331,6 +12332,7 @@ var ContainerHistory={
                 }
             },
             serverSide: true,
+            order: [[ 4, 'desc' ]],
             columns: [
                 {data: "id"},
                 {data: "act"},
