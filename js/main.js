@@ -12448,7 +12448,7 @@ var ContainerHistory={
 
         $('#container_history').DataTable({
             dom: "Bfrtip",
-            pageLength: 10,
+            pageLength: 5,
             ajax: {
                 url:"/api/container_history/view_history",
                 type:"POST",
