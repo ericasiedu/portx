@@ -7443,19 +7443,19 @@ var InvoiceApproval = {
                        header = "Add Note Error";
                        body = "Cannot add empty field";
                        Modaler.dModal(header,body);
-                       TableRfresh.freshTable('invoice');
+                       TableRfresh.freshTable('invoice_approvals');
                    }
                    else if (response.st == 123){
                        header = "Add Note Error";
                        body = "Invoice must be unpaid";
                        Modaler.dModal(header,body);
-                       TableRfresh.freshTable('invoice');
+                       TableRfresh.freshTable('invoice_approvals');
                    }
                        else if(response.st == 260){
                          header = "Add Note Success";
                          body = "Note Added successful";
                          Modaler.dModal(header,body);
-                         TableRfresh.freshTable('invoice');
+                         TableRfresh.freshTable('invoice_approvals');
                      }
                 },
                 error:function () {
@@ -8034,7 +8034,7 @@ var SupplementaryInvoiceApproval = {
                     header = "CANCELLATION ERROR";
                     body = "Note not added to invoice for cancellation";
                     Modaler.dModal(header,body)
-                    TableRfresh.freshTable('invoice');
+                    TableRfresh.freshTable('supp_invoice_approvals');
                 }
                 else if (response.st == 121){
                     header = "Deferred Error";
@@ -8168,19 +8168,19 @@ var SupplementaryInvoiceApproval = {
                       header = "Add Note Error";
                       body = "Cannot add empty field";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('supp_invoice');
+                      TableRfresh.freshTable('supp_invoice_approvals');
                   }
                   else if (response.st == 123){
                       header = "Add Note Error";
                       body = "Supplementary Invoice must be paid";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('supp_invoice');
+                      TableRfresh.freshTable('supp_invoice_approvals');
                   }
                   else if(response.st == 260){
                     header = "Add Note Success";
                     body = "Note Added successful";
                     Modaler.dModal(header,body);
-                    TableRfresh.freshTable('supp_invoice');
+                    TableRfresh.freshTable('supp_invoice_approvals');
                 }
                },
                error:function () {
@@ -8375,7 +8375,7 @@ var SuppInvoice = {
                     header = "CANCELLATION ERROR";
                     body = "Note not added to invoice for cancellation";
                     Modaler.dModal(header,body)
-                    TableRfresh.freshTable('invoice');
+                    TableRfresh.freshTable('supp_invoice');
                 }
                 else if (response.st == 121){
                     header = "Deferred Error";
