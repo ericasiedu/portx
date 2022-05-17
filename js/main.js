@@ -856,9 +856,10 @@ var GateIn = {
                 var imdg = result.iname;
                 var reference = result.reference;
                 var code = result.code;
+                
 
-                $('#full_stat').val(full_status ? "YES (Laden)" : "NO");
-                $('#oog').val(oog_stat ? "YES" : "NO");
+                $('#full_stat').val(full_status);
+                $('#oog').val(oog_stat);
                 $('#soc_status').val(soc);
                 $('#imdg').val(imdg);
                 $('#voyage').val(reference);
@@ -870,12 +871,26 @@ var GateIn = {
 
                 if ($('#trade_select').val() == 21) {
                     $('#consignee').show();
+                    $('#container').prop('disabled',false);
+                    $('#imdg').prop('disabled',false);
+                    $('#soc_status').prop('disabled',false);
+                    $('#full_stat').prop('disabled',false);
+                    $('#oog').prop('disabled',false);
+                    $('#line').prop('disabled',false);
+                    $('#code').prop('disabled',false);
                 }
                 else {
                     $('#consignee').hide();
+                    $('#container').prop('disabled',false);
+                    $('#imdg').prop('disabled',true);
+                    $('#soc_status').prop('disabled',true);
+                    $('#full_stat').prop('disabled',true);
+                    $('#oog').prop('disabled',true);
+                    $('#line').prop('disabled',true);
+                    $('#code').prop('disabled',true);
                 }
 
-                $('#oog').prop("checked", true);
+                // $('#oog').prop("checked", true);
             },
             error: function () {
                 $('#myModalLabel').text('ERROR');
@@ -973,11 +988,16 @@ var GateIn = {
                 {
                     label: "SOC:",
                     name: "soc",
+                    type: "select",
                     attr: {
                         id: 'soc_status',
                         class: "form-control",
                         disabled: true
-                    }
+                    },
+                    options: [
+                        {label: "NO", value: "NO"},
+                        {label: "YES", value: "YES"}
+                    ]
                 },
                 {
                     label: "Voyage:",
@@ -995,7 +1015,8 @@ var GateIn = {
                         list: "Shipping Line",
                         id: "line",
                         class: "form-control",
-                        disabled: true
+                        disabled: true,
+                        list: "lines"
                     }
                 }, {
                     label: "Depot:",
@@ -1017,7 +1038,8 @@ var GateIn = {
                     attr: {
                         id: "code",
                         class: "form-control",
-                        disabled: true
+                        disabled: true,
+                        list: "iso_code"
                     }
                 }, {
                     label: "IMDG:",
@@ -1026,24 +1048,35 @@ var GateIn = {
                         id: "imdg",
                         class: "form-control",
                         list: "imdgs",
-                        disabled: true
+                        disabled: true,
+                        list: "imdgs"
                     },
                 }, {
                     label: "Full Status:",
                     name: "full_status",
+                    type: "select",
                     attr: {
                         id: "full_stat",
                         class: "form-control",
                         disabled: true
                     },
+                    options: [
+                        {label: "YES (Laden)", value: 1},
+                        {label: "NO", value: 0}
+                    ]
                 }, {
                     label: "OOG:",
                     name: "oog",
+                    type: "select",
                     attr: {
                         id: "oog",
                         class: "form-control",
                         disabled: true
                     },
+                    options: [
+                        {label: "NO", value: 0},
+                        {label: "YES", value: 1}
+                    ]
                 }, {
                     label: "Seal Number 1:",
                     name: "seal_number_1",
@@ -1430,6 +1463,13 @@ var GateIn = {
         expressEditor.field('gate_record.type').hide();
         expressEditor.field('gate_record.user_id').hide();
 
+        editor.on('initEdit', function() {
+            // var export_trade = editor.field('trade').val();
+            if(editor.field('trade').val() == 21){
+                editor.field('trade').enable();
+            }
+        });
+
         var container_check = false;
 
         expressEditor.on('preSubmit', function (e, o, action) {
@@ -1536,8 +1576,8 @@ var GateIn = {
         });
 
         editor.on('open', function () {
-            var number = editor.field('gate_record.container_id').val();
-            GateIn.getContainerInfo(number);
+            // var number = editor.field('gate_record.container_id').val();
+            // GateIn.getContainerInfo(number);
 
             $('#container').focusout(function () {
                 var number = editor.field('gate_record.container_id').val();
@@ -1546,9 +1586,203 @@ var GateIn = {
         });
 
         editor.on('preSubmit', function (e, o, action) {
-            var number = editor.field('gate_record.container_id').val();
-            GateIn.getContainerInfo(number);
+            // var number = editor.field('gate_record.container_id').val();
+            // GateIn.getContainerInfo(number);
+
+            var table = $('#gate_in').DataTable();
+            var rowData = table.row({selected: true}).data();
+            var container_number = rowData['gate_record']['container_id'];
+            var number = container_number.toString();
+
+            var trade_type = this.field('trade').val();
+
+            if (action === 'edit' && trade_type == 21) {
+                var container_no = this.field('gate_record.container_id');
+                var seal_no1 = this.field('seal_number_1');
+                var seal_no2 = this.field('seal_number_2');
+                var imdg = this.field('imdg');
+                var iso = this.field('iso_code');
+                var shipping_line = this.field('shipping_line');
+                var oog_status = this.field('oog');
+                var full_status = this.field('full_status');
+                var soc_status = this.field('soc');
+        
+                $.ajax({
+                    url:"/api/container/edit_export_container",
+                    type:"POST",
+                    async: false,
+                    data:{
+                        ctno: container_no.val(),
+                        imdg: imdg.val(),
+                        fstat: full_status.val(),
+                        iso: iso.val(),
+                        soc: soc_status.val(),
+                        seal1: seal_no1.val(),
+                        seal2: seal_no2.val(),
+                        shid: shipping_line.val(),
+                        oog: oog_status.val(),
+                        rctno: number
+                    },
+                    success: function(data){
+                        var data = JSON.parse(data);
+                        if (data.st == 161) {
+                            if (data.err.seal1) {
+                                seal_no1.error("Empty field");
+                                var seal_number1 = document.querySelector('#seal_number1');
+                                seal_number1.scrollIntoView();
+                            }
+                            else if (data.err.sea1 == 'senu1') {
+                                seal_no1.error("Seal number 1 must not contain symbols");
+                                var seal_number1 = document.querySelector('#seal_number1');
+                                seal_number1.scrollIntoView();
+                            }
+                            if (data.err.seal2) {
+                                seal_no2.error("Empty field");
+                                var seal_number2 = document.querySelector('#seal_number2');
+                                seal_number2.scrollIntoView();
+                            }
+                            else if (data.err.sea2 == 'senu2') {
+                                seal_no2.error("Seal number 2 must not contain symbols");
+                                var seal_number2 = document.querySelector('#seal_number2');
+                                seal_number2.scrollIntoView();
+                            }
+                            if (data.err.img) {
+                                if (!imdg.val()) {
+                                    imdg.error("Empty field");
+                                }
+                                else {
+                                    imdg.error("IMDG Code does not exist");
+                                }
+                                var imdgs = document.querySelector('#imdg');
+                                imdgs.scrollIntoView();
+                            }
+                            if (data.err.iso) {
+                                if (!iso.val()) {
+                                    iso.error("Empty field");
+                                }
+                                else {
+                                    iso.error("ISO Code does not exist");
+                                }
+                                var iso_code = document.querySelector('#iso_code');
+                                iso_code.scrollIntoView();
+                            }
+                            if (data.err.sline) {
+                                if (!imdg.val()) {
+                                    shipping_line.error("Empty field");
+                                }
+                                else {
+                                    shipping_line.error("Shipping Line does not exist");
+                                }
+                                var shipping_line_id = document.querySelector('#line');
+                                shipping_line_id.scrollIntoView();
+                            }
+                        
+                    }
+                    else if (data.st == 261) {
+                        container_check = true;
+                    }
+                },
+                error: function(){
+                    alert("Something went wrong");
+                }
+            });
+            return container_check;
+            }
         });
+
+        // editor.on('initSubmit', function (e, o, action){
+        //     var container_no = this.field('gate_record.container_id');
+        //     var seal_no1 = this.field('seal_number_1');
+        //     var seal_no2 = this.field('seal_number_2');
+        //     var imdg = this.field('imdg');
+        //     var iso = this.field('iso_code');
+        //     var shipping_line = this.field('shipping_line');
+        //     var oog_status = this.field('oog');
+        //     var full_status = this.field('full_status');
+        //     var soc_status = this.field('soc');
+        
+        //     $.ajax({
+        //         url:"/api/container/edit_export_container",
+        //         type:"POST",
+        //         async: false,
+        //         data:{
+        //             ctno: container_no.val(),
+        //             imdg: imdg.val(),
+        //             fstat: full_status.val(),
+        //             iso: iso.val(),
+        //             soc: soc_status.val(),
+        //             seal1: seal_no1.val(),
+        //             seal2: seal_no2.val(),
+        //             shid: shipping_line.val(),
+        //             oog: oog_status.val()
+        //         },
+        //         success: function(data){
+        //             var data = JSON.parse(data);
+        //             if (data.st == 161) {
+        //                 if (data.err.seal1) {
+        //                     seal_no1.error("Empty field");
+        //                     var seal_number1 = document.querySelector('#seal_number1');
+        //                     seal_number1.scrollIntoView();
+        //                 }
+        //                 else if (data.err.sea1 == 'senu1') {
+        //                     seal_no1.error("Seal number 1 must not contain symbols");
+        //                     var seal_number1 = document.querySelector('#seal_number1');
+        //                     seal_number1.scrollIntoView();
+        //                 }
+        //                 if (data.err.seal2) {
+        //                     seal_no2.error("Empty field");
+        //                     var seal_number2 = document.querySelector('#seal_number2');
+        //                     seal_number2.scrollIntoView();
+        //                 }
+        //                 else if (data.err.sea2 == 'senu2') {
+        //                     seal_no2.error("Seal number 2 must not contain symbols");
+        //                     var seal_number2 = document.querySelector('#seal_number2');
+        //                     seal_number2.scrollIntoView();
+        //                 }
+        //                 if (data.err.img) {
+        //                     if (!imdg.val()) {
+        //                         imdg.error("Empty field");
+        //                     }
+        //                     else {
+        //                         imdg.error("IMDG Code does not exist");
+        //                     }
+        //                     var imdgs = document.querySelector('#imdg');
+        //                     imdgs.scrollIntoView();
+        //                 }
+        //                 if (data.err.iso) {
+        //                     if (!iso.val()) {
+        //                         iso.error("Empty field");
+        //                     }
+        //                     else {
+        //                         iso.error("ISO Code does not exist");
+        //                     }
+        //                     var iso_code = document.querySelector('#iso_code');
+        //                     iso_code.scrollIntoView();
+        //                  }
+        //                  if (data.err.sline) {
+        //                     if (!imdg.val()) {
+        //                         shipping_line.error("Empty field");
+        //                     }
+        //                     else {
+        //                         shipping_line.error("Shipping Line does not exist");
+        //                     }
+        //                     var shipping_line_id = document.querySelector('#line');
+        //                     shipping_line_id.scrollIntoView();
+        //                 }
+        //             }
+        //             else if (data.st == 260) {
+        //                 container_check = true;
+        //             }
+                    
+        //         },
+        //         error: function(){
+        //             alert("Something went wrong");
+        //         }
+        //     });
+
+        //     return false;
+
+        // });
         
 
         var container_number_error = false;
