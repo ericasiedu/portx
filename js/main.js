@@ -614,6 +614,7 @@ var Container= {
 
         editor.field('container.book_number').hide();
         editor.dependent('container.trade_type_code', function (val) {
+            
             if (val == 21) {
                 editor.field('container.voyage').val('');
                 editor.field('container.icl_seal_number_1').val('');
@@ -622,6 +623,7 @@ var Container= {
                 editor.field('container.importer_address').val('');
             }
             else {
+                editor.field('container.voyage').val('');
                 editor.field('container.book_number').val('');
             }
             return val == 21 ?
@@ -831,6 +833,56 @@ var GateIn = {
         request.send("type=" + type);
     },
 
+    getTradetypeInfo: function(number){
+        var container = $('#container').val();
+        if (container == undefined){
+            container = number;
+        }
+
+        $.ajax({
+            type: "POST",
+            url:"/api/container/get_trade_type_info",
+            data:{
+                cnum: container
+            },
+            success: function(data){
+                var result = $.parseJSON(data);
+                if (result == null) {
+                    return;
+                }
+                var trade_type = result.trade_type_code;
+                $('#trade_select').val(trade_type);
+
+                if ($('#trade_select').val() == 21) {
+                    $('#consignee').show();
+                    $('#container').prop('disabled',false);
+                    var checked = false;
+                    GateIn.fieldChecked(checked);
+                    $('#book_number').show();
+
+                    GateIn.loadTradeTypeContainers();
+                }
+                else {
+                    $('#consignee').hide();
+                    $('#container').prop('disabled',false);
+                    // $('#imdg').prop('disabled',true);
+                    // $('#soc_status').prop('disabled',true);
+                    // $('#full_stat').prop('disabled',true);
+                    // $('#oog').prop('disabled',true);
+                    // $('#line').prop('disabled',true);
+                    // $('#code').prop('disabled',true);
+                    var checked = true;
+                    GateIn.fieldChecked(checked);
+                    $('#book_number').hide();
+                }
+            },
+            error: function(){
+                alert("something went wrong");
+            }
+        });
+            
+    },
+
     getContainerInfo: function (number) {
         var container = $('#container').val();
         if (container == undefined)
@@ -852,10 +904,10 @@ var GateIn = {
                 var line = result.name;
                 var full_status = result.full_status;
                 var oog_stat = result.oog_status;
-                var trade_type = result.trade_type_code;
                 var imdg = result.iname;
                 var reference = result.reference;
                 var code = result.code;
+                var book_number = result.book_number;
                 
 
                 $('#full_stat').val(full_status);
@@ -867,7 +919,7 @@ var GateIn = {
                 $('#seal_number2').val(seal2);
                 $('#line').val(line);
                 $('#code').val(code);
-                $('#trade_select').val(trade_type);
+                $('#book_number').val(book_number);
 
                 if ($('#trade_select').val() == 21) {
                     $('#consignee').show();
@@ -878,6 +930,9 @@ var GateIn = {
                     $('#oog').prop('disabled',false);
                     $('#line').prop('disabled',false);
                     $('#code').prop('disabled',false);
+                    $('#book_numberID').show();
+
+                    GateIn.loadTradeTypeContainers();
                 }
                 else {
                     $('#consignee').hide();
@@ -888,9 +943,9 @@ var GateIn = {
                     $('#oog').prop('disabled',true);
                     $('#line').prop('disabled',true);
                     $('#code').prop('disabled',true);
+                    $('#book_numberID').hide();
                 }
 
-                // $('#oog').prop("checked", true);
             },
             error: function () {
                 $('#myModalLabel').text('ERROR');
@@ -948,6 +1003,40 @@ var GateIn = {
         request.send("data=" + id);
     },
 
+    fieldChecked: function(checked){
+        $('#imdg').prop('disabled',checked);
+        $('#soc_status').prop('disabled',checked);
+        $('#full_stat').prop('disabled',checked);
+        $('#oog').prop('disabled',checked);
+        $('#line').prop('disabled',checked);
+        $('#code').prop('disabled',checked);
+    },
+
+    invoiceContainer: function(number){
+        $.ajax({
+            url: "/api/container/get_invoiced_container",
+            type: "POST",
+            data: {
+                cnum: number
+            },
+            success: function(data){
+                var result = $.parseJSON(data);
+                if (result == null) {
+                    return;
+                }
+
+                if(result.iner){
+                    $('#container').prop('disabled',true);
+                    var checked = true;
+                    GateIn.fieldChecked(checked);
+                }
+            },
+            error: function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
     iniTable: function () {
         editor = new $.fn.dataTable.Editor({
             ajax: "/api/gate_in/table",
@@ -984,6 +1073,14 @@ var GateIn = {
                 name: "gate_record.type",
                 def: 1,
                 hidden: true
+            },{
+                label: "Booking Number:",
+                name: "book_number",
+                attr:{
+                    id: "book_number",
+                    class: "form-control",
+                    maxLength: 20
+                }
             },
                 {
                     label: "SOC:",
@@ -1129,7 +1226,6 @@ var GateIn = {
                         id: 'consignee',
                         class: "form-control",
                         list:"customers_name",
-                        id: 'consignee',
                         maxlength: 255,
                     }
                 }, {
@@ -1206,6 +1302,7 @@ var GateIn = {
         editor.field('gate_record.status').hide();
         editor.field('gate_record.type').hide();
         editor.field('gate_record.user_id').hide();
+        
 
         expressEditor = new $.fn.dataTable.Editor({
             ajax: "/api/gate_in/table",
@@ -1464,7 +1561,6 @@ var GateIn = {
         expressEditor.field('gate_record.user_id').hide();
 
         editor.on('initEdit', function() {
-            // var export_trade = editor.field('trade').val();
             if(editor.field('trade').val() == 21){
                 editor.field('trade').enable();
             }
@@ -1576,9 +1672,6 @@ var GateIn = {
         });
 
         editor.on('open', function () {
-            // var number = editor.field('gate_record.container_id').val();
-            // GateIn.getContainerInfo(number);
-
             $('#container').focusout(function () {
                 var number = editor.field('gate_record.container_id').val();
                 GateIn.getContainerInfo(number);
@@ -1586,17 +1679,14 @@ var GateIn = {
         });
 
         editor.on('preSubmit', function (e, o, action) {
-            // var number = editor.field('gate_record.container_id').val();
-            // GateIn.getContainerInfo(number);
-
-            var table = $('#gate_in').DataTable();
-            var rowData = table.row({selected: true}).data();
-            var container_number = rowData['gate_record']['container_id'];
-            var number = container_number.toString();
-
             var trade_type = this.field('trade').val();
 
             if (action === 'edit' && trade_type == 21) {
+                var table = $('#gate_in').DataTable();
+                var rowData = table.row({selected: true}).data();
+                var container_number = rowData['gate_record']['container_id'];
+                var number = container_number.toString();
+                
                 var container_no = this.field('gate_record.container_id');
                 var seal_no1 = this.field('seal_number_1');
                 var seal_no2 = this.field('seal_number_2');
@@ -1606,6 +1696,8 @@ var GateIn = {
                 var oog_status = this.field('oog');
                 var full_status = this.field('full_status');
                 var soc_status = this.field('soc');
+                var book_number = this.field('book_number');
+                
         
                 $.ajax({
                     url:"/api/container/edit_export_container",
@@ -1621,7 +1713,8 @@ var GateIn = {
                         seal2: seal_no2.val(),
                         shid: shipping_line.val(),
                         oog: oog_status.val(),
-                        rctno: number
+                        rctno: number,
+                        bkno: book_number.val()
                     },
                     success: function(data){
                         var data = JSON.parse(data);
@@ -1645,6 +1738,16 @@ var GateIn = {
                                 seal_no2.error("Seal number 2 must not contain symbols");
                                 var seal_number2 = document.querySelector('#seal_number2');
                                 seal_number2.scrollIntoView();
+                            }
+                            if (data.err.bknu) {
+                                book_number.error("Empty field");
+                                var book_num = document.querySelector('#book_numberID');
+                                book_num.scrollIntoView();
+                            }
+                            else if (data.err.bkerr == 'bkn_err') {
+                                book_number.error("Booking Number must not contains symbols");
+                                var book_num = document.querySelector('#book_numberID');
+                                book_num.scrollIntoView();
                             }
                             if (data.err.img) {
                                 if (!imdg.val()) {
@@ -1676,6 +1779,21 @@ var GateIn = {
                                 var shipping_line_id = document.querySelector('#line');
                                 shipping_line_id.scrollIntoView();
                             }
+                            if(data.err.cnerr){
+                                container_no.error("Empty field");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
+                            else if (data.err.cner == 'ctn_err') {
+                                container_no.error("Container number cannot contain symbols");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
+                            if (data.err.trter) {
+                                container_no.error("Container is not EXPORT trade type");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
                         
                     }
                     else if (data.st == 261) {
@@ -1690,101 +1808,7 @@ var GateIn = {
             }
         });
 
-        // editor.on('initSubmit', function (e, o, action){
-        //     var container_no = this.field('gate_record.container_id');
-        //     var seal_no1 = this.field('seal_number_1');
-        //     var seal_no2 = this.field('seal_number_2');
-        //     var imdg = this.field('imdg');
-        //     var iso = this.field('iso_code');
-        //     var shipping_line = this.field('shipping_line');
-        //     var oog_status = this.field('oog');
-        //     var full_status = this.field('full_status');
-        //     var soc_status = this.field('soc');
-        
-        //     $.ajax({
-        //         url:"/api/container/edit_export_container",
-        //         type:"POST",
-        //         async: false,
-        //         data:{
-        //             ctno: container_no.val(),
-        //             imdg: imdg.val(),
-        //             fstat: full_status.val(),
-        //             iso: iso.val(),
-        //             soc: soc_status.val(),
-        //             seal1: seal_no1.val(),
-        //             seal2: seal_no2.val(),
-        //             shid: shipping_line.val(),
-        //             oog: oog_status.val()
-        //         },
-        //         success: function(data){
-        //             var data = JSON.parse(data);
-        //             if (data.st == 161) {
-        //                 if (data.err.seal1) {
-        //                     seal_no1.error("Empty field");
-        //                     var seal_number1 = document.querySelector('#seal_number1');
-        //                     seal_number1.scrollIntoView();
-        //                 }
-        //                 else if (data.err.sea1 == 'senu1') {
-        //                     seal_no1.error("Seal number 1 must not contain symbols");
-        //                     var seal_number1 = document.querySelector('#seal_number1');
-        //                     seal_number1.scrollIntoView();
-        //                 }
-        //                 if (data.err.seal2) {
-        //                     seal_no2.error("Empty field");
-        //                     var seal_number2 = document.querySelector('#seal_number2');
-        //                     seal_number2.scrollIntoView();
-        //                 }
-        //                 else if (data.err.sea2 == 'senu2') {
-        //                     seal_no2.error("Seal number 2 must not contain symbols");
-        //                     var seal_number2 = document.querySelector('#seal_number2');
-        //                     seal_number2.scrollIntoView();
-        //                 }
-        //                 if (data.err.img) {
-        //                     if (!imdg.val()) {
-        //                         imdg.error("Empty field");
-        //                     }
-        //                     else {
-        //                         imdg.error("IMDG Code does not exist");
-        //                     }
-        //                     var imdgs = document.querySelector('#imdg');
-        //                     imdgs.scrollIntoView();
-        //                 }
-        //                 if (data.err.iso) {
-        //                     if (!iso.val()) {
-        //                         iso.error("Empty field");
-        //                     }
-        //                     else {
-        //                         iso.error("ISO Code does not exist");
-        //                     }
-        //                     var iso_code = document.querySelector('#iso_code');
-        //                     iso_code.scrollIntoView();
-        //                  }
-        //                  if (data.err.sline) {
-        //                     if (!imdg.val()) {
-        //                         shipping_line.error("Empty field");
-        //                     }
-        //                     else {
-        //                         shipping_line.error("Shipping Line does not exist");
-        //                     }
-        //                     var shipping_line_id = document.querySelector('#line');
-        //                     shipping_line_id.scrollIntoView();
-        //                 }
-        //             }
-        //             else if (data.st == 260) {
-        //                 container_check = true;
-        //             }
-                    
-        //         },
-        //         error: function(){
-        //             alert("Something went wrong");
-        //         }
-        //     });
-
-        //     return false;
-
-        // });
-        
-
+    
         var container_number_error = false;
 
         expressEditor.on('initSubmit', function (e, o, action) {
@@ -2038,6 +2062,31 @@ var GateIn = {
                 }]
         });
 
+        editor.on('edit', function(){
+            var table = $('#gate_in').DataTable();
+            var rowData = table.row({selected: true}).data();
+            var container_number = rowData['gate_record']['container_id'];
+            var number = container_number.toString();
+
+            var container_number_field = this.field('gate_record.container_id').val();
+            if(number != container_number_field){
+                $.ajax({
+                    url: "/api/container/update_container_gate_status",
+                    type: "POST",
+                    data:{
+                        cnum: container_number_field,
+                        num: number
+                    },
+                    success: function(data){
+    
+                    },
+                    error: function(){
+                        alert('something went wrong');
+                    }
+                });
+            }
+          
+        });
 
         add_gatein_condition.on('submitSuccess', function () {
             TableRfresh.freshTable('gate_in');
@@ -2141,7 +2190,10 @@ var GateIn = {
             var rowData = table.row({selected: true}).data();
             var container_number = rowData['gate_record']['container_id'];
             var number = container_number.toString();
+            
             GateIn.getContainerInfo(number);
+            GateIn.getTradetypeInfo(number);
+            GateIn.invoiceContainer(number);
         });
     }
 }
