@@ -865,12 +865,7 @@ var GateIn = {
                 else {
                     $('#consignee').hide();
                     $('#container').prop('disabled',false);
-                    // $('#imdg').prop('disabled',true);
-                    // $('#soc_status').prop('disabled',true);
-                    // $('#full_stat').prop('disabled',true);
-                    // $('#oog').prop('disabled',true);
-                    // $('#line').prop('disabled',true);
-                    // $('#code').prop('disabled',true);
+
                     var checked = true;
                     GateIn.fieldChecked(checked);
                     $('#book_number').hide();
@@ -924,12 +919,10 @@ var GateIn = {
                 if ($('#trade_select').val() == 21) {
                     $('#consignee').show();
                     $('#container').prop('disabled',false);
-                    $('#imdg').prop('disabled',false);
-                    $('#soc_status').prop('disabled',false);
-                    $('#full_stat').prop('disabled',false);
-                    $('#oog').prop('disabled',false);
-                    $('#line').prop('disabled',false);
-                    $('#code').prop('disabled',false);
+                    $('#code').prop('disabled',true);
+                    var checked = false;
+                    GateIn.fieldChecked(checked);
+                    $('#code').prop('disabled',true);
                     $('#book_numberID').show();
 
                     GateIn.loadTradeTypeContainers();
@@ -937,12 +930,9 @@ var GateIn = {
                 else {
                     $('#consignee').hide();
                     $('#container').prop('disabled',false);
-                    $('#imdg').prop('disabled',true);
-                    $('#soc_status').prop('disabled',true);
-                    $('#full_stat').prop('disabled',true);
-                    $('#oog').prop('disabled',true);
-                    $('#line').prop('disabled',true);
                     $('#code').prop('disabled',true);
+                    var checked = true;
+                    GateIn.fieldChecked(checked);
                     $('#book_numberID').hide();
                 }
 
@@ -1009,7 +999,6 @@ var GateIn = {
         $('#full_stat').prop('disabled',checked);
         $('#oog').prop('disabled',checked);
         $('#line').prop('disabled',checked);
-        $('#code').prop('disabled',checked);
     },
 
     invoiceContainer: function(number){
@@ -1681,6 +1670,8 @@ var GateIn = {
         editor.on('preSubmit', function (e, o, action) {
             var trade_type = this.field('trade').val();
 
+            var error_check = false;
+
             if (action === 'edit' && trade_type == 21) {
                 var table = $('#gate_in').DataTable();
                 var rowData = table.row({selected: true}).data();
@@ -1691,14 +1682,12 @@ var GateIn = {
                 var seal_no1 = this.field('seal_number_1');
                 var seal_no2 = this.field('seal_number_2');
                 var imdg = this.field('imdg');
-                var iso = this.field('iso_code');
                 var shipping_line = this.field('shipping_line');
                 var oog_status = this.field('oog');
                 var full_status = this.field('full_status');
                 var soc_status = this.field('soc');
                 var book_number = this.field('book_number');
                 
-        
                 $.ajax({
                     url:"/api/container/edit_export_container",
                     type:"POST",
@@ -1707,7 +1696,6 @@ var GateIn = {
                         ctno: container_no.val(),
                         imdg: imdg.val(),
                         fstat: full_status.val(),
-                        iso: iso.val(),
                         soc: soc_status.val(),
                         seal1: seal_no1.val(),
                         seal2: seal_no2.val(),
@@ -1789,6 +1777,11 @@ var GateIn = {
                                 var container = document.querySelector('#container');
                                 container.scrollIntoView();
                             }
+                            if(data.err.clen){
+                                container_no.error("Container number must not be less that 11 charactors.");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
                             if (data.err.trter) {
                                 container_no.error("Container is not EXPORT trade type");
                                 var container = document.querySelector('#container');
@@ -1797,15 +1790,16 @@ var GateIn = {
                         
                     }
                     else if (data.st == 261) {
-                        container_check = true;
+                        error_check = true;
                     }
                 },
                 error: function(){
                     alert("Something went wrong");
                 }
             });
-            return container_check;
+            return error_check;
             }
+            
         });
 
     
@@ -1952,9 +1946,20 @@ var GateIn = {
                                     container_no.error('Empty field');
                                 }
                             }
+                           
                             var exports = document.querySelector('#exportID');
                             exports.scrollIntoView();
                             container_number_error = true;
+                        }
+                        if(data.err.trte == "trer"){
+                            container_no.error("Container is not EXPORT trade type");
+                            var container = document.querySelector('#exportID');
+                            container.scrollIntoView();
+                        }
+                        if(data.err.isoer == "iso_er"){
+                            iso.error("Container ISO Code is "+ data.err.isod);
+                            var iso_code = document.querySelector('#iso_code');
+                            iso_code.scrollIntoView();
                         }
                     }
                     else if (data.st == 260) {
@@ -2115,6 +2120,7 @@ var GateIn = {
                 }
             });
         });
+
 
         editor.on('submitComplete', function (e, json, data, action) {
             if (action === 'remove') {
