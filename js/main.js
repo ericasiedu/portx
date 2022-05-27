@@ -803,13 +803,19 @@ var GateIn = {
         var el = document.getElementById('trade_select');
         var type = el.value;
         var consig = document.getElementById('consignee');
+        var book_number = document.getElementById('book_numberID');
 
         if (type == 21) {
             consig.style.display = 'block';
+            book_number.style.display = 'block';
+            document.getElementById('book_number').disabled = true;
         }
         else {
             consig.style.display = 'none';
+            book_number.style.display = 'none';
+            document.getElementById('book_number').disabled = false;
         }
+        
 
         var request = new XMLHttpRequest();
         request.open("POST", "/api/container/get_trade_containers", true);
@@ -1787,6 +1793,11 @@ var GateIn = {
                                 var container = document.querySelector('#container');
                                 container.scrollIntoView();
                             }
+                            if(data.err.flag){
+                                container_no.error("Container has been flagged");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView(); 
+                            }
                         
                     }
                     else if (data.st == 261) {
@@ -1960,6 +1971,11 @@ var GateIn = {
                             iso.error("Container ISO Code is "+ data.err.isod);
                             var iso_code = document.querySelector('#iso_code');
                             iso_code.scrollIntoView();
+                        }
+                        if(data.err.flag == "flagged"){
+                            container_no.error("Container has been flagged");
+                            var container = document.querySelector('#exportID');
+                            container.scrollIntoView();
                         }
                     }
                     else if (data.st == 260) {
