@@ -932,6 +932,73 @@ var GateIn = {
                     $('#book_numberID').show();
 
                     GateIn.loadTradeTypeContainers();
+                    GateIn.invoiceContainer(container);
+                }
+                else {
+                    $('#consignee').hide();
+                    $('#container').prop('disabled',false);
+                    $('#code').prop('disabled',true);
+                    GateIn.invoiceContainer(container);
+                    var checked = true;
+                    GateIn.fieldChecked(checked);
+                    $('#book_numberID').hide();
+                }
+
+            },
+            error: function () {
+                $('#myModalLabel').text('ERROR');
+                $('#gate_container').text('Something Went Wrong');
+            }
+        });
+    },
+
+    getContainerEditInfo: function (gate_record,number) {
+  
+        $.ajax({
+            type: 'POST',
+            url: '/api/container/get_container_edit_info',
+            data: {gid: gate_record},
+            success: function (data) {
+                var result = $.parseJSON(data);
+
+                if (result == null) {
+                    return;
+                }
+
+                var seal1 = result.seal_number_1;
+                var seal2 = result.seal_number_2;
+                var soc = result.soc_status;
+                var line = result.name;
+                var full_status = result.full_status;
+                var oog_stat = result.oog_status;
+                var imdg = result.iname;
+                var reference = result.reference;
+                var code = result.code;
+                var book_number = result.book_number;
+                
+
+                $('#full_stat').val(full_status);
+                $('#oog').val(oog_stat);
+                $('#soc_status').val(soc);
+                $('#imdg').val(imdg);
+                $('#voyage').val(reference);
+                $('#seal_number1').val(seal1);
+                $('#seal_number2').val(seal2);
+                $('#line').val(line);
+                $('#code').val(code);
+                $('#book_number').val(book_number);
+
+                if ($('#trade_select').val() == 21) {
+                    $('#consignee').show();
+                    $('#container').prop('disabled',false);
+                    $('#code').prop('disabled',true);
+                    var checked = false;
+                    GateIn.fieldChecked(checked);
+                    $('#code').prop('disabled',true);
+                    $('#book_numberID').show();
+
+                    GateIn.loadTradeTypeContainers();
+                    GateIn.invoiceContainer(number);
                 }
                 else {
                     $('#consignee').hide();
@@ -940,6 +1007,7 @@ var GateIn = {
                     var checked = true;
                     GateIn.fieldChecked(checked);
                     $('#book_numberID').hide();
+                    GateIn.invoiceContainer(number);
                 }
 
             },
@@ -2154,10 +2222,11 @@ var GateIn = {
                 type: "POST"
             },
             serverSide: true,
-            columnDefs: [{type: 'date', 'targets': [15]}, {"searchable": false, "targets": 18}
+            columnDefs: [{type: 'date', 'targets': [16]}, {"searchable": false, "targets": 19}
             ],
-            order: [[9, 'desc']],
+            order: [[10, 'desc']],
             columns: [
+                {data: "gid", visible: false},
                 {data: "ctnum"},
                 {data: "isoc"},
                 {data: "vyref"},
@@ -2211,11 +2280,12 @@ var GateIn = {
             var table = $('#gate_in').DataTable();
             var rowData = table.row({selected: true}).data();
             var container_number = rowData['gate_record']['container_id'];
+            var gate_record_id = rowData['gid'];
             var number = container_number.toString();
             
-            GateIn.getContainerInfo(number);
+            GateIn.getContainerEditInfo(gate_record_id,number);
             GateIn.getTradetypeInfo(number);
-            GateIn.invoiceContainer(number);
+           
         });
     }
 }
