@@ -839,17 +839,17 @@ var GateIn = {
         request.send("type=" + type);
     },
 
-    getTradetypeInfo: function(number){
-        var container = $('#container').val();
-        if (container == undefined){
-            container = number;
-        }
+    getTradetypeInfo: function(gate_record){
+        // var container = $('#container').val();
+        // if (container == undefined){
+        //     container = number;
+        // }
 
         $.ajax({
             type: "POST",
             url:"/api/container/get_trade_type_info",
             data:{
-                cnum: container
+                gid: gate_record
             },
             success: function(data){
                 var result = $.parseJSON(data);
@@ -952,7 +952,7 @@ var GateIn = {
         });
     },
 
-    getContainerEditInfo: function (gate_record,number) {
+    getContainerEditInfo: function (gate_record) {
   
         $.ajax({
             type: 'POST',
@@ -998,7 +998,7 @@ var GateIn = {
                     $('#book_numberID').show();
 
                     GateIn.loadTradeTypeContainers();
-                    GateIn.invoiceContainer(number);
+                 
                 }
                 else {
                     $('#consignee').hide();
@@ -1007,7 +1007,7 @@ var GateIn = {
                     var checked = true;
                     GateIn.fieldChecked(checked);
                     $('#book_numberID').hide();
-                    GateIn.invoiceContainer(number);
+                   
                 }
 
             },
@@ -1075,12 +1075,12 @@ var GateIn = {
         $('#line').prop('disabled',checked);
     },
 
-    invoiceContainer: function(number){
+    invoiceContainer: function(gate_record){
         $.ajax({
             url: "/api/container/get_invoiced_container",
             type: "POST",
             data: {
-                cnum: number
+                gid: gate_record
             },
             success: function(data){
                 var result = $.parseJSON(data);
@@ -2283,9 +2283,9 @@ var GateIn = {
             var gate_record_id = rowData['gid'];
             var number = container_number.toString();
             
-            GateIn.getContainerEditInfo(gate_record_id,number);
-            GateIn.getTradetypeInfo(number);
-           
+            GateIn.getContainerEditInfo(gate_record_id);
+            GateIn.getTradetypeInfo(gate_record_id);
+            GateIn.invoiceContainer(gate_record_id);
         });
     }
 }
