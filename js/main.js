@@ -840,10 +840,6 @@ var GateIn = {
     },
 
     getTradetypeInfo: function(gate_record){
-        // var container = $('#container').val();
-        // if (container == undefined){
-        //     container = number;
-        // }
 
         $.ajax({
             type: "POST",
@@ -988,26 +984,24 @@ var GateIn = {
                 $('#code').val(code);
                 $('#book_number').val(book_number);
 
+                $('#code').prop('disabled',true);
+                $('#trade_select').prop('disabled',true);
+
                 if ($('#trade_select').val() == 21) {
                     $('#consignee').show();
                     $('#container').prop('disabled',false);
-                    $('#code').prop('disabled',true);
                     var checked = false;
                     GateIn.fieldChecked(checked);
-                    $('#code').prop('disabled',true);
                     $('#book_numberID').show();
-
                     GateIn.loadTradeTypeContainers();
                  
                 }
                 else {
                     $('#consignee').hide();
                     $('#container').prop('disabled',false);
-                    $('#code').prop('disabled',true);
                     var checked = true;
                     GateIn.fieldChecked(checked);
                     $('#book_numberID').hide();
-                   
                 }
 
             },
@@ -1090,9 +1084,11 @@ var GateIn = {
 
                 if(result.iner){
                     $('#container').prop('disabled',true);
+                    $('#trade_select').prop('disabled',true);
                     var checked = true;
                     GateIn.fieldChecked(checked);
                 }
+
             },
             error: function(){
                 alert("something went wrong");
@@ -1751,6 +1747,7 @@ var GateIn = {
                 var rowData = table.row({selected: true}).data();
                 var container_number = rowData['gate_record']['container_id'];
                 var number = container_number.toString();
+                var gate_record = rowData['gid'];
                 
                 var container_no = this.field('gate_record.container_id');
                 var seal_no1 = this.field('seal_number_1');
@@ -1776,7 +1773,8 @@ var GateIn = {
                         shid: shipping_line.val(),
                         oog: oog_status.val(),
                         rctno: number,
-                        bkno: book_number.val()
+                        bkno: book_number.val(),
+                        gid: gate_record
                     },
                     success: function(data){
                         var data = JSON.parse(data);
@@ -2281,10 +2279,11 @@ var GateIn = {
             var rowData = table.row({selected: true}).data();
             var container_number = rowData['gate_record']['container_id'];
             var gate_record_id = rowData['gid'];
-            var number = container_number.toString();
-            
-            GateIn.getContainerEditInfo(gate_record_id);
+            var number = container_number.toString();        
+           
+           
             GateIn.getTradetypeInfo(gate_record_id);
+            GateIn.getContainerEditInfo(gate_record_id);
             GateIn.invoiceContainer(gate_record_id);
         });
     }
