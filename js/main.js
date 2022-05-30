@@ -987,23 +987,6 @@ var GateIn = {
                 $('#code').prop('disabled',true);
                 $('#trade_select').prop('disabled',true);
 
-                if ($('#trade_select').val() == 21) {
-                    $('#consignee').show();
-                    $('#container').prop('disabled',false);
-                    var checked = false;
-                    GateIn.fieldChecked(checked);
-                    $('#book_numberID').show();
-                    GateIn.loadTradeTypeContainers();
-                 
-                }
-                else {
-                    $('#consignee').hide();
-                    $('#container').prop('disabled',false);
-                    var checked = true;
-                    GateIn.fieldChecked(checked);
-                    $('#book_numberID').hide();
-                }
-
             },
             error: function () {
                 $('#myModalLabel').text('ERROR');
@@ -1081,12 +1064,30 @@ var GateIn = {
                 if (result == null) {
                     return;
                 }
+                GateIn.getContainerEditInfo(gate_record);
 
                 if(result.iner){
                     $('#container').prop('disabled',true);
                     $('#trade_select').prop('disabled',true);
                     var checked = true;
                     GateIn.fieldChecked(checked);
+                }
+                else{
+                    if ($('#trade_select').val() == 21) {
+                        $('#consignee').show();
+                        $('#container').prop('disabled',false);
+                        var checked = false;
+                        GateIn.fieldChecked(checked);
+                        $('#book_numberID').show();
+                        GateIn.loadTradeTypeContainers();
+                    }
+                    else {
+                        $('#consignee').hide();
+                        $('#container').prop('disabled',false);
+                        var checked = true;
+                        GateIn.fieldChecked(checked);
+                        $('#book_numberID').hide();
+                    }
                 }
 
             },
@@ -2283,7 +2284,7 @@ var GateIn = {
            
            
             GateIn.getTradetypeInfo(gate_record_id);
-            GateIn.getContainerEditInfo(gate_record_id);
+            // GateIn.getContainerEditInfo(gate_record_id);
             GateIn.invoiceContainer(gate_record_id);
         });
     }
