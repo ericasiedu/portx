@@ -8162,8 +8162,8 @@ var InvoiceWaiver = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 16 } ],
-            order: [[ 13, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
+            order: [[ 14, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
