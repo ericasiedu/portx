@@ -3438,11 +3438,33 @@ var DepotOver = {
 
         var header = container;
         var body = "<div class=\"col-md-12\"><table id=\"container_activity\" class=\"display table-responsive\">" +
-            "<thead><tr><th>Activity </th><th>Note</th><th>User</th><th>Date</th><th>ID</th></tr></thead>" +
+            "<thead><tr><th>ID</th><th>Activity </th><th>Note</th><th>User</th><th>Date</th></tr></thead>" +
             "</table></div>";
         CondModal.cModal(header, body);
 
         DepotOver.iniActivityTable(id,container);
+    },
+
+    invoicedActivity: function(logged_id){
+        $.ajax({
+            url:"/api/depot_overview/acitivty_invoiced",
+            type: "POST",
+            data: {
+                logg: logged_id
+            },
+            success: function(data){
+                var result = $.parseJSON(data);
+                if(result.err){
+                    $('#activity').prop("disabled",true);
+                }
+                else{
+                    $('#activity').prop("disabled",false);
+                }
+            },
+            error: function(){
+                alert("something went wrong");
+            }
+        });
     },
 
     iniActivityTable: function (id,container) {
@@ -3514,7 +3536,8 @@ var DepotOver = {
                     name: "container_log.activity_id",
                     attr: {
                         class: "form-control",
-                        list: "activity_list"
+                        list: "activity_list",
+                        id: "activity"
                     }
                 }, {
                     label: "Note:",
@@ -3563,6 +3586,7 @@ var DepotOver = {
             order: [[ 3, 'asc' ]],
             serverSide: true,
             columns: [
+                { data: "loged"},
                 { data: "name" },
                 { data: "container_log.note" },
                 { data: "container_log.user_id" },
@@ -3577,7 +3601,14 @@ var DepotOver = {
             ]
         });
 
-
+        actEditor.on('onInitEdit', function () {
+            var table = $('#container_activity').DataTable();
+            var rowData = table.row({selected: true}).data();
+            var container_log_id = rowData['loged'];
+            DepotOver.invoicedActivity(container_log_id);
+            // actEditor.field('container_log.activity_id').disable();
+       
+        });
     },
 
     addContainerInfo:function(container_number, id) {
@@ -6781,20 +6812,6 @@ var Invoice = {
         });
 
         
-        // note_editor.on('preSubmit', function(e, o, action){
-            // if(action !== 'remove'){
-                // var note_id = this.field('note');
-                // if(!note_id.val()){
-                //     note_id.error("EMPTY Field");
-                //     var note = document.querySelector('#note_id');
-                //     note.scrollIntoView();
-                // }
-            // }
-        // });
-        
-
-        // expressEditor.on('preSubmit', function (e, o, action) {
-        //     if (action !== 'remove') {
 
 
         editor = new $.fn.dataTable.Editor({
@@ -6917,12 +6934,13 @@ var Invoice = {
                 type: "POST"
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
-            order: [[ 14, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [15] },{ "searchable": false, "targets": 17 } ],
+            order: [[ 15, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
@@ -7270,12 +7288,13 @@ var InvoiceDeferrals = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
-            order: [[ 14, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [15] },{ "searchable": false, "targets": 17 } ],
+            order: [[ 15, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
@@ -7854,12 +7873,13 @@ var InvoiceApproval = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 15 } ],
-            order: [[ 13, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
+            order: [[ 14, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
@@ -8142,12 +8162,13 @@ var InvoiceWaiver = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 15 } ],
+            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 16 } ],
             order: [[ 13, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
