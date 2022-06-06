@@ -3431,26 +3431,15 @@ var ContainerCondition = {
     }
 }
 
-var DepotOver = {
-    activityAlert: function (id, container) {
-
-        $('#container_number').text(container);
-
-        var header = container;
-        var body = "<div class=\"col-md-12\"><table id=\"container_activity\" class=\"display table-responsive\">" +
-            "<thead><tr><th>ID</th><th>Activity </th><th>Note</th><th>User</th><th>Date</th></tr></thead>" +
-            "</table></div>";
-        CondModal.cModal(header, body);
-
-        DepotOver.iniActivityTable(id,container);
-    },
-
+var Activity = {
+    is_proforma:false,
     invoicedActivity: function(logged_id){
         $.ajax({
             url:"/api/depot_overview/acitivty_invoiced",
             type: "POST",
             data: {
-                logg: logged_id
+                logg: logged_id,
+                prof: Activity.is_proforma ? 1 : 0
             },
             success: function(data){
                 var result = $.parseJSON(data);
@@ -3465,6 +3454,21 @@ var DepotOver = {
                 alert("something went wrong");
             }
         });
+    }
+}
+
+var DepotOver = {
+    activityAlert: function (id, container) {
+
+        $('#container_number').text(container);
+
+        var header = container;
+        var body = "<div class=\"col-md-12\"><table id=\"container_activity\" class=\"display table-responsive\">" +
+            "<thead><tr><th>ID</th><th>Activity </th><th>Note</th><th>User</th><th>Date</th></tr></thead>" +
+            "</table></div>";
+        CondModal.cModal(header, body);
+
+        DepotOver.iniActivityTable(id,container);
     },
 
     iniActivityTable: function (id,container) {
@@ -3605,9 +3609,7 @@ var DepotOver = {
             var table = $('#container_activity').DataTable();
             var rowData = table.row({selected: true}).data();
             var container_log_id = rowData['loged'];
-            DepotOver.invoicedActivity(container_log_id);
-            // actEditor.field('container_log.activity_id').disable();
-       
+            Activity.invoicedActivity(container_log_id);
         });
     },
 
@@ -3864,7 +3866,7 @@ var ProformaDepotOver = {
 
         var header = container;
         var body = "<div class=\"col-md-12\"><table id=\"container_activity\" class=\"display table-responsive\">" +
-            "<thead><tr><th>Activity </th><th>Note</th><th>User</th><th>Date</th><th>ID</th></tr></thead>" +
+            "<thead><tr><th>ID</th><th>Activity </th><th>Note</th><th>User</th><th>Date</th></tr></thead>" +
             "</table></div>";
         CondModal.cModal(header, body);
 
@@ -3941,7 +3943,8 @@ var ProformaDepotOver = {
                     name: "proforma_container_log.activity_id",
                     attr: {
                         class: "form-control",
-                        list: "activity_list"
+                        list: "activity_list",
+                        id: "activity"
                     }
                 }, {
                     label: "Note:",
@@ -3976,6 +3979,14 @@ var ProformaDepotOver = {
             TableRfresh.freshTable('container_activity');
         });
 
+        actEditor.on('onInitEdit', function () {
+            var table = $('#container_activity').DataTable();
+            var rowData = table.row({selected: true}).data();
+            var container_log_id = rowData['loged'];
+            Activity.is_proforma = 1;
+            Activity.invoicedActivity(container_log_id);
+        });
+
         $('#container_activity').DataTable({
             dom: "Bfrtip",
             ajax: {
@@ -3989,6 +4000,7 @@ var ProformaDepotOver = {
             order: [[4, 'asc']],
             serverSide: true,
             columns: [
+                { data: "loged"},
                 {data: "name"},
                 {data: "proforma_container_log.note"},
                 {data: "proforma_container_log.user_id"},
@@ -7126,9 +7138,6 @@ var InvoicePayments = {
                 {   hide: ['payment.bank_name',"payment.bank_cheque_number"]};
         });
 
-
-
-
         paymentEditor.field('payment.receipt_number').hide();
         paymentEditor.field('payment.outstanding').hide();
         paymentEditor.field('payment.user_id').hide();
@@ -7147,13 +7156,12 @@ var InvoicePayments = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [15] },{ "searchable": false, "targets": 17 } ],
-            order: [[ 15, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
+            order: [[ 14, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
-                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
@@ -9478,12 +9486,13 @@ var ProformaInvoice = {
                 type: "POST"
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [12] },{ "searchable": false, "targets": 13 } ],
-            order: [[ 12, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 14 } ],
+            order: [[ 13, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "proforma_invoice.number"},
                 {data: "proforma_invoice.bl_number"},
+                {data: "proforma_invoice.book_number", visible:false},
                 {data: "proforma_invoice.do_number", visible:false},
                 {data: "proforma_invoice.bill_date", visible:false},
                 {data: "proforma_invoice.due_date"},
