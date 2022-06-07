@@ -355,6 +355,22 @@ var Modaler = {
     }
 }
 
+var EventModal = {
+    dModal: function (header, html, size, id) {
+        app.modaler({
+            title: header,
+            html: html,
+            type: 'center',
+            size: size ? size : 'sm',
+            confirmVisible: false,
+            // isModal: true,
+            footerVisible: false,
+            modalId: id,
+            // onShown: event,
+        });
+    }
+}
+
 var CondModal = {
     cModal: function (header, html, size) {
         app.modaler({
@@ -1420,6 +1436,276 @@ var GateIn = {
         expressEditor.field('gate_record.type').hide();
         expressEditor.field('gate_record.user_id').hide();
 
+        emptyEditor = new $.fn.dataTable.Editor({
+            ajax: "/api/gate_in/table",
+            table: "#gate_in",
+            fields: [{
+                label: "Trade Type:",
+                name: "trade",
+                type: "select",
+                attr: {
+                    id: "trade_select",
+                    class: "form-control"
+                },
+                options: [
+                    {label: "EMPTY", value: 70}
+                ]
+            }, {
+                label: "Container:",
+                name: "gate_record.container_id",
+                attr: {
+                    maxlength: 11,
+                    id: 'emptyID',
+                    class: "form-control"
+                }
+            }, /* {
+                label: "Booking Number.",
+                name: "book_number",
+                attr: {
+                    class: "form-control",
+                    id: "book_numberID",
+                    maxlength: 20,
+                }
+            }, */
+                {
+                    label: "Agency",
+                    name: "agent",
+                    attr: {
+                        class: "form-control",
+                        list: "agents",
+                        id: "agentID",
+                        maxlength: 150
+                    }
+                },
+                /* {
+                    label: "Content of Goods",
+                    name: "goods_content",
+                    type: "textarea",
+                    attr: {
+                        class: "form-control",
+                        id: "goodsID"
+                    }
+                }, */ {
+                    label: "Type:",
+                    name: "gate_record.type",
+                    def: 1
+                },
+                {
+                    label: "SOC:",
+                    name: "soc",
+                    type: "select",
+                    attr: {
+                        id: 'soc_status',
+                        class: "form-control"
+                    },
+                    options: [
+                        {label: "NO", value: "NO"},
+                        {label: "YES", value: "YES"}
+                    ]
+                },
+                {
+                    label: "Depot:",
+                    name: "gate_record.depot_id",
+                    type: "select",
+                    def: '2',
+                    attr: {
+                        class: "form-control"
+                    }
+                }, {
+                    label: "Gate:",
+                    name: "gate_record.gate_id",
+                    type: "select",
+                    attr: {
+                        class: "form-control"
+                    }
+                }, {
+                    label: "Shipping Line:",
+                    name: "shipping_line_id",
+                    attr: {
+                        id: "shippingLineID",
+                        class: "form-control",
+                        list: "lines"
+                    }
+                }, {
+                    label: "ISO Type Code:",
+                    name: "iso_code",
+                    attr: {
+                        id: "iso_code",
+                        class: "form-control",
+                        list: "iso_code"
+                    }
+                }, /* {
+                    label: "IMDG:",
+                    name: "imdg",
+                    attr: {
+                        id: "imdg",
+                        class: "form-control",
+                        list: "imdgs"
+                    },
+                }, */ {
+                    label: "Full Status:",
+                    name: "full_status",
+                    type: "select",
+                    attr: {
+                        id: "full_stat",
+                        class: "form-control"
+                    },
+                    options: [
+                        {label: "YES (Laden)", value: 1},
+                        {label: "NO", value: 0}
+                    ],
+                    def: 0
+                }, {
+                    label: "OOG:",
+                    name: "oog",
+                    type: "select",
+                    attr: {
+                        id: "oog",
+                        class: "form-control"
+                    },
+                    options: [
+                        {label: "NO", value: 0},
+                        {label: "YES", value: 1}
+                    ],
+                    def: 0
+                }, {
+                    label: "Seal Number 1:",
+                    name: "seal_number_1",
+                    attr: {
+                        id: "seal_number1",
+                        class: "form-control",
+                        maxlength: 20
+                    },
+                }, {
+                    label: "Seal Number 2:",
+                    name: "seal_number_2",
+                    attr: {
+                        id: "seal_number2",
+                        class: "form-control",
+                        maxlength: 20
+                    },
+                }, {
+                    label: "Activity Type:",
+                    name: "activity_type",
+                    type: "select",
+                    attr: {
+                        id: "seal_number2",
+                        class: "form-control",
+                    },
+                    options: [
+                        {label: "Positioning", value: "Positioning"},
+                        {label: "Drop-off", value: "Drop-off"}
+                    ],
+                    // def: 0
+                }, {
+                    label: "Special Seal:",
+                    name: "gate_record.special_seal",
+                    attr: {
+                        class: "form-control",
+                        maxlength: 20,
+                        id: "specialSealID"
+                    }
+                },
+                {
+                    label: "Vehicle:",
+                    name: "gate_record.vehicle_id",
+                    attr: {
+                        list: "vehicles",
+                        class: "form-control",
+                        id: "vehicleID"
+                    }
+                }, {
+                    label: "Driver:",
+                    name: "gate_record.driver_id",
+                    attr: {
+                        list: "drivers",
+                        class: "form-control",
+                        id: "driverID"
+                    }
+                }, {
+                    label: "Trucking Company:",
+                    name: "gate_record.trucking_company_id",
+                    attr: {
+                        list: "companies",
+                        class: "form-control",
+                        id: "truckID"
+                    }
+                }, {
+                    label: "Consignee:",
+                    name: "gate_record.consignee",
+                    attr: {
+                        list:"customers_name",
+                        id: 'consignee',
+                        class: "form-control",
+                        maxlength: 255
+                    }
+                }, /* {
+                    label: "External Reference:",
+                    name: "gate_record.external_reference",
+                    fieldInfo: "Use Gate In Condition screen for damage details",
+                    attr: {
+                        id: "external_ref",
+                        class: "form-control",
+                        maxlength: 50
+                    }
+                }, */ {
+                    label: "Condition:",
+                    name: "gate_record.cond",
+                    type: "select",
+                    attr: {
+                        id: 'cond',
+                        class: "form-control",
+                        onchange: "GateIn.conditionCall()"
+                    },
+                    options: [
+                        {label: "SOUND", value: "SOUND"},
+                        {label: "NOT SOUND", value: "NOT SOUND"}
+                    ]
+                }, {
+                    label: "Note:",
+                    name: "gate_record.note",
+                    type: "textarea",
+                    attr: {
+                        class: "form-control"
+                    }
+                }, {
+                    label: "Status:",
+                    name: "gate_record.status",
+                    attr: {
+                        id: "full_stat",
+                        class: "form-control"
+                    }
+                }, {
+                    label: "EIR/Waybill No:",
+                    name: "gate_record.waybill",
+                    attr: {
+                        class: "form-control",
+                        maxlength: 20
+                    }
+                }, {
+                    label: "User",
+                    name: "gate_record.user_id",
+                    attr: {
+                        class: "form-control",
+                    }
+                }, {
+                    label: "Date:",
+                    name: "gate_record.date",
+                    type: "datetime",
+                    def: function () {
+                        return new Date();
+                    },
+                    format: "YYYY-MM-DD HH:mm",
+                    attr: {
+                        class: "form-control"
+                    }
+                }]
+        });
+
+        emptyEditor.field('gate_record.status').hide();
+        emptyEditor.field('gate_record.type').hide();
+        emptyEditor.field('gate_record.user_id').hide();
+
         var container_check = false;
 
         expressEditor.on('preSubmit', function (e, o, action) {
@@ -1513,6 +1799,108 @@ var GateIn = {
                 }
 
                 if (this.inError() || !container_check) {
+                    return false;
+                }
+            }
+        });
+
+        // emptyEditor.on('preSubmit', function (e, o, action) {
+        emptyEditor.on('initSubmit', function (e, o, action) {
+            if (action !== 'remove') {
+                // var content = this.field('goods_content');
+                // var book_number = this.field('book_number');
+                var agent = this.field('agent');
+                var seal_no1 = this.field('seal_number_1');
+                var seal_no2 = this.field('seal_number_2');
+                // var imdg = this.field('imdg');
+                var consignee = this.field('gate_record.consignee');
+                var regex = new RegExp("[a-z A-Z 0-9 -]+$");
+                var container_no = this.field('gate_record.container_id');
+                var vehicle = this.field('gate_record.vehicle_id');
+                var driver = this.field('gate_record.driver_id');
+                var truck = this.field('gate_record.trucking_company_id');
+                var iso = this.field('iso_code');
+                var shipping_line = this.field('shipping_line_id');
+
+                if (!container_no.val()) {
+                    container_no.error("Empty field");
+                    var container_nos = document.querySelector('#emptyID');
+                    container_nos.scrollIntoView();
+                }
+                if (!consignee.val()) {
+                    consignee.error("Empty field");
+                    var consignees = document.querySelector('#consignee');
+                    consignees.scrollIntoView();
+                }
+                if (!truck.val()) {
+                    truck.error('Empty field');
+                    var truckID = document.querySelector('#truckID');
+                    truckID.scrollIntoView();
+                }
+                if (!driver.val()) {
+                    driver.error('Empty field');
+                    var driverID = document.querySelector('#driverID');
+                    driverID.scrollIntoView();
+                }
+                if (!vehicle.val()) {
+                    vehicle.error('Empty field');
+                    var vehicleID = document.querySelector('#vehicleID');
+                    vehicleID.scrollIntoView();
+                }
+                if (!seal_no1.val()) {
+                    seal_no1.error("Empty field");
+                    var seal_number1 = document.querySelector('#seal_number1');
+                    seal_number1.scrollIntoView();
+                }
+                if (!seal_no2.val()) {
+                    seal_no2.error("Empty field");
+                    var seal_number2 = document.querySelector('#seal_number2');
+                    seal_number2.scrollIntoView();
+                }
+                /* if (!imdg.val()) {
+                    imdg.error("Empty field");
+                    var imdgs = document.querySelector('#imdg');
+                    imdgs.scrollIntoView();
+                } */
+                if (!iso.val()) {
+                    iso.error('Empty field');
+                    var iso_code = document.querySelector('#iso_code');
+                    iso_code.scrollIntoView();
+                }
+                if (!shipping_line.val()) {
+                    shipping_line.error("Empty field");
+                    var shipping_line_id = document.querySelector('#shippingLineID');
+                    shipping_line_id.scrollIntoView();
+                }
+                /* if (!content.val()) {
+                    content.error("Empty field");
+                    var contents = document.querySelector('#goodsID');
+                    contents.scrollIntoView();
+                } */
+                if (!agent.val()) {
+                    agent.error("Empty field");
+                    var agentID = document.querySelector('#agentID');
+                    agentID.scrollIntoView();
+                }
+                /* if (!book_number.val()) {
+                    book_number.error("Empty field");
+                    var book_numberID = document.querySelector('#book_numberID');
+                    book_numberID.scrollIntoView();
+                }
+                else if (!regex.test(book_number.val())) {
+                    book_number.error("Booking Number must not contain symbols.");
+                    var book_numberID1 = document.querySelector('#book_numberID');
+                    book_numberID1.scrollIntoView();
+                } */
+                if (container_no.error() || container_number_error) {
+                    if (container_no.val().trim() == '') {
+                        container_no.error('Empty field');
+                    }
+                    var empty = document.querySelector('#emptyID');
+                    empty.scrollIntoView();
+                }
+                // if (this.inError() || !container_check) {
+                if (this.inError()) {
                     return false;
                 }
             }
@@ -1699,6 +2087,183 @@ var GateIn = {
             });
 
             return false;
+        });
+
+        // emptyEditor.on('initSubmit', function (e, o, action) {
+        emptyEditor.on('preSubmit', function (e, o, action) {
+            container_number_error = false;
+            var trade_type = this.field('trade');
+            var container_no = this.field('gate_record.container_id');
+            var agent = this.field('agent');
+            var full_status = this.field('full_status');
+            var iso = this.field('iso_code');
+            var oog = this.field('oog');
+            var soc = this.field('soc');
+            var seal_no1 = this.field('seal_number_1');
+            var seal_no2 = this.field('seal_number_2');
+            var activity_type = this.field('activity_type');
+            var consignee = this.field('gate_record.consignee');
+            var shipping_line = this.field('shipping_line_id');
+            var special_seal = this.field('gate_record.special_seal');
+            $.ajax({
+                url: "/api/container/add_empty_container",
+                type: "POST",
+                async: false,
+                data: {
+                    trty: trade_type.val(),
+                    ctno: container_no.val(),
+                    agnt: agent.val(),
+                    fstat: full_status.val(),
+                    iso: iso.val(),
+                    oog: oog.val(),
+                    soc: soc.val(),
+                    seal1: seal_no1.val(),
+                    seal2: seal_no2.val(),
+                    activity: activity_type.val(),
+                    cons: consignee.val(),
+                    shid: shipping_line.val(),
+                    spel: special_seal.val()
+                },
+                success: function (data) {
+                    var data = JSON.parse(data);
+                    if (data.st == 160) {
+                        if (data.err.cons) {
+                            consignee.error("Empty field");
+                            var consignees = document.querySelector('#consignee');
+                            consignees.scrollIntoView();
+                        }
+                        if (data.err.cser) {
+                            container_no.error(data.err.cser);
+                            var empty = document.querySelector('#emptyID');
+                            empty.scrollIntoView();
+                        }
+                        if (data.err.seal1) {
+                            seal_no1.error("Empty field");
+                            var seal_number1 = document.querySelector('#seal_number1');
+                            seal_number1.scrollIntoView();
+                        }
+                        else if (data.err.sea1 == 'senu1') {
+                            seal_no1.error("Seal number 1 must not contain symbols");
+                            var seal_number1 = document.querySelector('#seal_number1');
+                            seal_number1.scrollIntoView();
+                        }
+                        if (data.err.seal2) {
+                            seal_no2.error("Empty field");
+                            var seal_number2 = document.querySelector('#seal_number2');
+                            seal_number2.scrollIntoView();
+                        }
+                        else if (data.err.sea2 == 'senu2') {
+                            seal_no2.error("Seal number 2 must not contain symbols");
+                            var seal_number2 = document.querySelector('#seal_number2');
+                            seal_number2.scrollIntoView();
+                        }
+                        if (data.err.img) {
+                            if (!imdg.val()) {
+                                imdg.error("Empty field");
+                            }
+                            else {
+                                imdg.error("IMDG Code does not exist");
+                            }
+                            var imdgs = document.querySelector('#imdg');
+                            imdgs.scrollIntoView();
+                        }
+                        if (data.err.sline) {
+                            if (!imdg.val()) {
+                                shipping_line.error("Empty field");
+                            }
+                            else {
+                                shipping_line.error("Shipping Line does not exist");
+                            }
+                            var shipping_line_id = document.querySelector('#shippingLineID');
+                            shipping_line_id.scrollIntoView();
+                        }
+                        if (data.err.iso) {
+                            if (!iso.val()) {
+                                iso.error("Empty field");
+                            }
+                            else {
+                                iso.error("ISO Code does not exist");
+                            }
+                            var iso_code = document.querySelector('#iso_code');
+                            iso_code.scrollIntoView();
+                        }
+                        if (data.err.agnt) {
+                            if (!agent.val()) {
+                                agent.error("Empty field");
+                            }
+                            else {
+                                agent.error("Agent does not exist");
+                            }
+                            var agentID = document.querySelector('#agentID');
+                            agentID.scrollIntoView();
+                        }
+                        if (data.err.bnum) {
+                            book_number.error("Empty field");
+                            var book_numberID = document.querySelector('#book_numberID');
+                            book_numberID.scrollIntoView();
+                        }
+                        else if (data.err.bkn == 'bokn') {
+                            book_number.error("Booking number must not contain symbols.");
+                            var book_numberID = document.querySelector('#book_numberID');
+                            book_numberID.scrollIntoView();
+                        }
+                        if (data.err.spesc == "spelss") {
+                            special_seal.error("Special Seal must not contain symbols.");
+                            var specialSealID = document.querySelector('#specialSealID');
+                            specialSealID.scrollIntoView();
+                        }
+                        if (data.err.cnum != undefined) {
+                            if (data.err.cnum1 == "ex") {
+                                container_no.error("Container already exist.");
+                            }
+                            if (data.err.clens == "len") {
+                                container_no.error("Container number must not be less that 11 charactors.");
+                            }
+                            if (data.err.cnum == "sym") {
+                                container_no.error("Container number must not contain symbols.");
+                            }
+                            if (container_no.error() || data.err.cnum == "empty") {
+                                if (container_no.val().trim() == '') {
+                                    container_no.error('Empty field');
+                                }
+                            }
+                            var exports = document.querySelector('#exportID');
+                            exports.scrollIntoView();
+                            container_number_error = true;
+                        }
+
+
+                    }
+                    if (data.st == 260) {
+                        $.ajax({
+                            url: "/api/container/add_empty_activity",
+                            type: "POST",
+                            async: false,
+                            data: {
+                                // trty: trade_type.val(),
+                                ctno: container_no.val(),
+                                activity: activity_type.val(),
+                            },
+                            success: function (data) {
+                                var data = JSON.parse(data);
+                                console.log(data);
+                                if (data.st != 360) {
+                                    alert("Something went wrong");
+                                }
+                            },
+                        });
+                    }
+                    else if (data.st != 260) {
+                        return true;
+                    }
+
+                },
+                error: function () {
+                    alert("Something went wrong");
+                }
+            });
+
+            // return false;
         });
 
         add_gatein_condition = new $.fn.dataTable.Editor({
@@ -4686,6 +5251,10 @@ var Invoicing = {
                 $('#label_number').text('Booking Number');
                 $('.voyage').show();
             }
+            else if ($('#trade_type').val() == 70){
+                $('#label_number').text('Booking Number');
+                $('.voyage').hide();
+            }
             $('#b_number').val("");
             $('#voyage_id').val("");
             $('#error_label').text('');
@@ -4738,7 +5307,6 @@ var Invoicing = {
             $('#v_error_label').text('');
             $('#selection_error').text('');
             $('#error_tax_label').text('');
-            
 
             selectedContainers = [];
 
@@ -5046,10 +5614,40 @@ var Invoicing = {
 
                                 document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
 
+                            } else if (trade == '70') {
+                                document.getElementById('emp-shipper-td').innerHTML = parsedData.shipper;
+                                document.getElementById('emp-ship-line-td').innerHTML = parsedData.shippingLine;
+                                document.getElementById('emp-customer-td').innerHTML = parsedData.customer;
+
+                                // document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
+                                // document.getElementById('exp-voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                document.getElementById('emp-booking-number-td').innerHTML = parsedData.bNumber;
+                                document.getElementById('emp-booking-date-td').innerHTML = parsedData.bookingDate;
+
+                                document.getElementById('emp-containers-td').innerHTML = parsedData.containers;
+
                             }
 
-                            let midInfo = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
-                            console.log(document.querySelector('div.business'));
+                            let midInfo; // = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
+                            switch (trade) {
+                                case '11':
+                                    midInfo = document.querySelector('.mid-info.import');
+                                    break;
+                                    
+                                case '21':
+                                    midInfo = document.querySelector('.mid-info.export');
+                                    break;
+
+                                case '70':
+                                    midInfo = document.querySelector('.mid-info.empty');
+                                    break;
+
+                                default:
+                                    midInfo = document.querySelector('.mid-info.import');
+                                    break;
+
+                            }
+                            console.log(trade);
 
                             $(midInfo).css('position', 'static');
                             let previewLeft = document.getElementById('preview-left');
@@ -5254,6 +5852,10 @@ var Invoicing = {
                                     if ($('#trade_type').val() == 21) {
                                         $('#invoice_link').html('<a href="/api/export_invoice/show_export/' + invoice_number + '" target="_blank">View Export Invoice</a>');
                                     }
+
+                                    if ($('#trade_type').val() == 70) {
+                                        $('#invoice_link').html('<a href="/api/empty_invoice/show_empty/' + invoice_number + '" target="_blank">View Empty Invoice</a>');
+                                    }
                                 }
 
                                 $('#preview-left').removeClass('active');
@@ -5309,6 +5911,7 @@ var Invoicing = {
                     },
                     success:function (data) {
                         if (data) {
+                            console.log(data);
                             var result = JSON.parse(data);
 
                             var header, body;
@@ -5792,9 +6395,9 @@ var SupplementaryInvoice = {
                                         success:function(data){
                                             // console.log(data);
                                             let parsedData = $.parseJSON(data);
-                                            // console.log(parsedData);
+                                            console.log(parsedData);
 
-                                            ActivityCheckCharges.checkCharges(result);
+                                            // ActivityCheckCharges.checkCharges(result);
 
                                             $('#preview-left .removable').remove();
 
@@ -6424,6 +7027,10 @@ var Invoice = {
 
                         if (data.trade_type.name == 'EXPORT') {
                             invoice += '<a class="view_act" href="/api/export_invoice/show_export/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.trade_type.name == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
                         if (data.invoice.status == 'UNPAID'  || data.invoice.status == 'DEFERRED'){
@@ -12354,6 +12961,786 @@ var System={
 
 }
 
+var EmptyBooking = {
+
+    iniTable: function () {
+        editor = new $.fn.dataTable.Editor({
+            ajax:"/api/empty_booking/table",
+            table: "#booking",
+            // template: "#customForm",
+            fields: [
+                {
+                    label: "Shipping Line:",
+                    name: "booking.shipping_line_id",
+                    attr: {
+                        class: "form-control",
+                        list: "lines",
+                    }
+                },
+                {
+                    label: "Booked by Party:",
+                    name: "booking.customer_id",
+                    attr: {
+                        class: "form-control",
+                        list: "customers",
+                    },
+                },
+                {
+                    label: "Size:",
+                    name: "booking.size",
+                    type: "select",
+                    options: [
+                        {label: "20-Footer", value: '20'},
+                        {label: "40-Footer", value: '40'}
+                    ],
+                    attr: {
+                        class: "form-control",
+                        // maxlength: 100
+                    }
+                },
+                {
+                    label: "Quantity:",
+                    name: "booking.quantity",
+                    attr: {
+                        class: "form-control"
+                    }
+                },
+                {
+                    label: "Booking Number:",
+                    name: "booking.booking_number",
+                    attr: {
+                        class: "form-control"
+                    }
+                },
+                /* {
+                    label: "Add Containers from Empty:",
+                    name: "container[].id",
+                    type: "checkbox",
+                    attr: {
+                        class: "form-control"
+                    },
+                }, */
+            ]
+        });
+
+        $("#booking").DataTable({
+            dom: "Bfrtip",
+            ajax: {
+                url:"/api/empty_booking/table",
+                type:"POST"
+            },
+            serverSide: true,
+            columns: [
+                {data: "booking.shipping_line_id"},
+                {data: "booking.customer_id"},
+                {data: "booking.size"},
+                {data: "booking.quantity"},
+                {data: "booking.booking_number"},
+                // {data: "container", render: "[, ].number"}
+           ],
+            select: true,
+            buttons: Helpers.permissionButtonBuilder(editor,'Booking')
+        });
+    },
+
+};
+
+var Booking = {
+    getEmptyList: function (line, size, booking) {
+        let data;
+        let request = new XMLHttpRequest();
+        url = '/api/booking/get_containers';
+        request.open("POST", url);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.onload = function() {
+            if (request.status == 200) {
+                let response = JSON.parse(request.responseText);
+                // console.log(response);
+                data = response;
+            }
+            /* if (this.status >= 200 && this.status < 300) {
+                resolve(JSON.parse(this.responseText));
+            } else {
+                reject(`${this.status}: ${this.statusText}`);
+            } */
+        };
+        request.send(`line=${line}&size=${size}&booking=${booking}`);
+
+
+        return data;
+    },
+
+    populateDatalist: function (containers) {
+        // localStorage.${container[1]} = containers[0];
+        let datalist = document.getElementById('containers');
+        datalist.innerHTML = "";
+        let listFragment = document.createDocumentFragment();
+        containers.forEach(container => {
+            // Reflect.set(localStorage, container[1], container[0]);
+            localStorage[container[1]] = container[0];
+
+            let option = document.createElement('option');
+            option.innerText = container[1];
+
+            listFragment.appendChild(option);
+        });
+
+        datalist.appendChild(listFragment);
+    },
+
+    checkNew: function (checks) {
+
+    },
+
+    checkBoxes: function (val, checks) {
+        if (!(val == '' || val == NaN || val % 1 != 0 || val < 1 || checks.length < 1)) {
+            checks.forEach(check => {
+                if (checks.indexOf(check) < val)
+                    check.checked = true;
+                else 
+                    check.checked = false;
+            });
+        }
+    },
+
+    tagEditChecks: function (checks, editData, booking) {
+        for (var i = 0; i < editData.length; i++) {
+            if (!(editData[i][2] == null || editData[i][2] == '')) {
+                checks[i].setAttribute('book', booking);
+            }
+        }
+    },
+
+    checkEditBoxes: function (checks, booking) {
+        checks.forEach(check => {
+            check.getAttribute('book') == booking ? check.checked = true : check.checked = false;
+        });
+    },
+
+    doAjaxRequest: function (val, values, action, editor, callback) {   
+        let request = new XMLHttpRequest();
+        let url;
+        switch (action) {
+            case 'create':
+                url = '/api/booking/get_containers';
+                break;
+            
+            case 'edit':
+                url = '/api/booking/get_edit_containers';
+                break;
+
+            default:
+                url = '/api/booking/get_containers';
+                break;
+        }
+        
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.onload = function() {
+            if (request.status == 200) {
+                let response = JSON.parse(request.responseText);
+                // console.log(response);
+
+                let booking = values['booking.booking_number'];
+                if (action == 'edit') {
+                    response = response.filter(value => value[2] == null || value[2] == '' || value[2] == booking)
+                }
+
+                let options = [];
+
+                response.forEach(container => {
+                    let option = {};
+                    option.value = container[0];
+                    option.label = container[1];
+
+                    options.push(option);
+                });
+
+                editor.field('container[].id').update(options);
+
+                let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
+                let $editorChecks = $editorCheck.find("input[type='checkbox']");
+                let checkArray = Array.from($editorChecks);
+
+                switch (action) {
+                    case 'create':
+                        Booking.checkBoxes(values['booking.quantity'], checkArray);
+                        break;
+
+                    case 'edit':
+                        Booking.tagEditChecks(checkArray, response, values['booking.booking_number']);
+                        Booking.checkEditBoxes(checkArray, values['booking.booking_number']);
+                        break;
+
+                    default:
+                        Booking.checkBoxes(values['booking.quantity'], checkArray);
+                        break;
+                }
+
+                callback({});
+            }
+        };
+
+        request.send(`line=${values['booking.shipping_line_id']}&size=${values['booking.size']}`);
+    },
+
+    assignBookings: function (e, o, action) {
+        let booking = this.field('booking.booking_number').val();
+        let containerIds = this.field('container[].id').val();
+
+        let request = new XMLHttpRequest();
+        let url = '/api/booking/assign_bookings';
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.onload = function() {
+            if (request.status == 200) {
+                let response = JSON.parse(request.responseText);
+
+                console.log(response);
+            }
+        };
+
+        request.send(`booking=${booking}&ids=${containerIds}`);
+
+    },
+
+    getDeleteIds: function (event, values) {
+        // let containers = event.target.s.editFields[values[0]].data.container;
+
+        let ids = [];
+
+        values.forEach(value => {
+            var containers = event.target.s.editFields[value].data.container;
+            
+            containers.forEach(container => {
+                ids.push(container.id);
+            });
+        });
+
+        return ids;
+    },
+
+    getRowContainers: function () {
+        let promise = new Promise((resolve, reject) => {
+            let request = new XMLHttpRequest();
+            let url = '/api/booking/get_row_containers';
+            request.open("POST", url, true);
+            request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            request.onload = function() {
+                if (this.status >= 200 && this.status < 300) {
+                    resolve(JSON.parse(this.responseText));
+                } else {
+                    reject(`${this.status}: ${this.statusText}`);
+                }
+            };
+        });
+
+        return promise.then((containers))
+    },
+
+    assignEvent: function (check) {
+        check.addEventListener('change', function(e) {
+            if (this.checked == false) {
+                $(this).parent().remove();
+            }
+        }, false);
+    },
+
+    iniTable: function () {
+        editor = new $.fn.dataTable.Editor({
+            ajax:"/api/booking/table",
+            table: "#booking",
+            // template: "#customForm",
+            fields: [
+                {
+                    label: "Shipping Line:",
+                    name: "booking.shipping_line_id",
+                    attr: {
+                        class: "form-control",
+                        list: "lines",
+                        disabled: true
+                    },
+                },
+                {
+                    label: "Booked by Party:",
+                    name: "booking.customer_id",
+                    attr: {
+                        class: "form-control",
+                        list: "lines",
+                        disabled: true
+                    },
+                },
+                {
+                    label: "Size:",
+                    name: "booking.size",
+                    type: "select",
+                    options: [
+                        {label: "20-Footer", value: '20'},
+                        {label: "40-Footer", value: '40'}
+                    ],
+                    attr: {
+                        class: "form-control",
+                        disabled: true
+                    }
+                },
+                {
+                    label: "Quantity:",
+                    name: "booking.quantity",
+                    attr: {
+                        class: "form-control",
+                        disabled: true
+                    }
+                },
+                {
+                    label: "Booking Number:",
+                    name: "booking.booking_number",
+                    attr: {
+                        class: "form-control",
+                        disabled: true
+                    }
+                },
+                {
+                    label: "Container(s):",
+                    name: "container[].id",
+                    type: "checkbox",
+                    attr: {
+                        id: "container-list",
+                        class: "form-control"
+                    },
+                },
+                {
+                    label: "Add Container from Empty:",
+                    name: "booking.container",
+                    attr: {
+                        class: "form-control",
+                        list: "containers",
+                    }
+                },
+            ]
+        });
+
+        editor.field('container[].id').message('Uncheck Container to Remove');
+        editor.field('booking.container').message('Press Space Key to Add Container');
+
+        editor.on('initEdit', function (event, data, values, row) {
+            // do ajax to fetch and populate empty containers datalist
+            // console.log(editor.field('container[].id').input());
+            // console.log(document.querySelectorAll('input'));
+            let containers = Booking.getEmptyList(values.booking.shipping_line_id, 
+                values.booking.size, values.booking.booking_number);
+            Booking.populateDatalist(containers.empty);
+            // console.log(containers.row);
+
+            let options = [];
+            containers.row.forEach(container => {
+                let option = {};
+                option.value = container[0];
+                option.label = container[1];
+
+                options.push(option);
+            });
+
+            // option.value = 100;
+            // option.label = 'TESTCONTAINER';
+            editor.field('container[].id').update(options);
+
+            let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
+            let $editorChecks = $editorCheck.find("input[type='checkbox']");
+
+            let checkArray = Array.from($editorChecks);
+            // console.log(checkArray);
+
+            checkArray.forEach(check => {
+                // console.log(check);
+                check.checked = true;
+                Booking.assignEvent(check);
+            });
+        });
+
+        editor.on('open', function(event, data, values, row) {
+            editor.field('booking.container').focus();
+            // console.log(editor.modifier().row());
+            // console.log(data);
+            // console.log(values);
+            // console.log(row);
+            // let option = {};
+            // option.value = 100;
+            // option.label = 'TESTCONTAINER';
+            // editor.field('container[].id').update([option]);
+            // editor.field('container[].id').update([], true);
+            // this.value = '';
+
+            // let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
+            // let $editorChecks = $editorCheck.find("input[type='checkbox']");
+            // console.log($editorCheck);
+            // console.log($editorChecks);
+
+            // let checkArray = Array.from($editorChecks);
+
+            // Booking.checkBoxes(val, checkArray);
+            // checkArray[checkArray.length - 1].checked = true;
+
+            // checkArray.forEach(check => {
+            //     // console.log(check);
+            //     Booking.assignEvent(check);
+            // });
+        });
+
+        editor.field('booking.container').input().on('focus', function (e) {
+            // editor.field('container[].id').update([{label: "DUMMY", value: 1}], true);
+            let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
+            let $editorChecks = $editorCheck.find("input[type='checkbox']");
+            // console.log($editorChecks);
+            // console.log('focused');
+        })
+
+        editor.field('booking.container').input().on('keyup', function (e, d) {
+            e.preventDefault();
+            // console.log(e.originalEvent.key);
+            if (e.originalEvent.key == ' ') {
+                let number = this.value.trim();
+                let id = localStorage[number];
+                // console.log(id);
+                if (typeof id == "undefined")
+                    return;
+
+                let option = {};
+                option.value = id;
+                option.label = number;
+                editor.field('container[].id').update([option], true);
+                this.value = '';
+
+                let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
+                let $editorChecks = $editorCheck.find("input[type='checkbox']");
+    
+                let checkArray = Array.from($editorChecks);
+    
+                // Booking.checkBoxes(val, checkArray);
+                // console.log($editorCheck.find('input'));
+                checkArray[checkArray.length - 1].checked = true;
+
+                Booking.assignEvent(checkArray[checkArray.length - 1]);
+    
+            }
+        });
+
+        // editor.dependent('booking.shipping_line_id', function (val, data, callback) {
+        //     if (val == '')
+        //         callback({});
+
+        //     let values = data.values;
+        //     // let size =  values['booking.size'];
+        //     let action = editor.s.action;
+
+        //     Booking.doAjaxRequest(val, values, action, editor, callback);
+        // }, 'keyup');
+
+        // editor.dependent('booking.size', function (val, data, callback) {
+        //     if (data.values['booking.shipping_line_id'] == '')
+        //         callback({});
+
+        //     let values = data.values;
+        //     let action =  editor.s.action;
+
+        //     Booking.doAjaxRequest(val, values, action, editor, callback);
+        // });
+
+        // editor.dependent('booking.quantity', function (val, data, callback) {
+        //     let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
+        //     let $editorChecks = $editorCheck.find("input[type='checkbox']");
+
+        //     let checkArray = Array.from($editorChecks);
+
+        //     Booking.checkBoxes(val, checkArray);
+        //     // console.log(editor.field('container[].id').input());
+
+        //     callback({});
+        // });
+
+        editor.on('remove', function (event, data, values, row) {
+            // let quantity = editor.field('booking.quantity');
+            // let quantityVal = quantity.val();
+            // let containers = this.field('container[].id');
+            // let containersVal = containers.val();
+
+            let info = values;
+            console.log(event);
+            console.log(data);
+            console.log(values);
+            console.log(row);
+            // let containers = event.target.s.editFields[values[0]].data.container;
+            // console.log(containers);
+
+            let ids = Booking.getDeleteIds(event, values);
+
+            // containers.forEach(container => {
+            //     console.log(container);
+            //     ids.push(container.id);
+            // });
+            console.log(ids);
+
+            let request = new XMLHttpRequest();
+            let url = '/api/booking/unbook_containers';
+            request.open("POST", url, true);
+            request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            request.onload = function() {
+                if (request.status == 200) {
+                    let response = JSON.parse(request.responseText);
+
+                    console.log(response);
+                }
+            };
+
+            request.send(`ids=${ids}`);
+
+        });
+
+        editor.on('preEdit', function (event, data, values, row) {
+            console.log(event.target.s.editData['container[].id']);
+            // console.log(data.data.container[0].id);
+            let booking = this.field('booking.booking_number').val();
+            let containerIds = this.field('container[].id').val();
+            // let numbers = data.childNodes[4].innerText;
+            let containers = Array.from(data.data[0].container);
+            let ids = event.target.s.editData['container[].id'][row];
+
+            // containers.forEach(container => {
+            //     console.log(container);
+            //     ids.push(container.id);
+            // })
+            console.log(ids);
+
+            let request = new XMLHttpRequest();
+            let url = '/api/booking/assign_edit_bookings';
+            request.open("POST", url, true);
+            request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            request.onload = function() {
+                if (request.status == 200) {
+                    // let response = JSON.parse(request.responseText);
+
+                    console.log('Bookings assigned');
+                } else {
+                    console.log("Something went wrong");
+                }
+            };
+
+            request.send(`booking=${booking}&ids=${containerIds}&rowids=${ids}`);
+        });
+
+        // editor.on('preCreate', function (e, o, action) {
+        //     let booking = this.field('booking.booking_number').val();
+        //     let containerIds = this.field('container[].id').val();
+
+        //     let request = new XMLHttpRequest();
+        //     let url = '/api/booking/assign_bookings';
+        //     request.open("POST", url, true);
+        //     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        //     request.onload = function() {
+        //         if (request.status == 200) {
+        //             let response = JSON.parse(request.responseText);
+
+        //             console.log(response);
+        //         }
+        //     };
+
+        //     request.send(`booking=${booking}&ids=${containerIds}`);
+        // });
+
+        $("#booking").DataTable({
+            dom: "Bfrtip",
+            ajax: {
+                url:"/api/booking/table",
+                type:"POST"
+            },
+            serverSide: true,
+            columns: [
+                {data: "booking.shipping_line_id"},
+                {data: "booking.customer_id"},
+                {data: "booking.size"},
+                {data: "booking.quantity"},
+                {data: "booking.booking_number"},
+                {data: "container", render: "[, ].number"}
+           ],
+            select: true,
+            buttons: (function () {
+                var permission=JSON.parse(sessionStorage.getItem('permission'));
+                let buttons = [];
+                if (permission[system_object]['update'] == 1) {
+                    buttons.push({extend: "edit", editor: editor, formTitle: "Add/Remove Containers", className: "btn btn-primary"});
+                }
+                if ((permission[system_object]['delete'] == 1)) {
+                    buttons.push({extend: "remove", editor: editor, formTitle: "Delete ", className: "btn btn-primary"});
+                }
+                return buttons;
+        
+            }()),
+            // buttons: Helpers.permissionButtonBuilder(editor,'Booking')
+        });
+    }
+}
+
+var MoveToExport = {
+    move: function(id) {
+
+        let form = $('div.move-form');
+        let title = $('div.move-title').clone();
+        form.css('position', 'static');
+        let newForm = form.clone();
+        let $shownInput = newForm.find('input');
+        let $shownButton = newForm.find('button');
+        $shownInput.attr('id', 'move-input');
+        $shownButton.attr('id', 'move-button');
+        $('#move-input').focus();
+        EventModal.dModal('Export Booking Number', newForm, 'sm', /* 'move-modal' */);
+
+        var modalBody = document.querySelector('div.modal-body');
+        modalBody.addEventListener('DOMNodeInserted', function (e) {
+            console.log('inserted');
+        }, false);
+        console.log(modalBody);
+        form.css('position', 'absolute');
+
+        $shownButton.on('click', '', /* {id: id} */id, MoveToExport.addBooking);
+        $shownInput.on('keypress', function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+
+                document.getElementById('move-button').click();
+            }
+        });
+
+        $shownInput.focus();
+    },
+
+    enterIsClick: function() {
+        console.log('Enter is click');
+        var input = document.getElementById('move-input');
+
+        input.addEventListener('keyup', function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+
+                document.getElementById('move-button').click();
+            }
+        })
+    },
+
+    moveCall: function (id, booking) {
+        let request = new XMLHttpRequest();
+        url = '/api/move_to_export/move';
+        request.open("POST", url);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.onload = function() {
+            if (request.status == 200) {
+                TableRfresh.freshTable('move-to-export');
+                $('div.modal').removeClass('show');
+                $('div.modal-backdrop').remove();
+                $('div.modal').remove();
+                Modaler.dModal('MOVED', 'Empty Container Moved To Export Depot', 'sm')
+            } else {
+                alert('Something went wrong');
+            }
+        };
+        request.send(`id=${id}&booking=${booking}`);
+    },
+
+    addBooking: function(id) {
+        console.log(id.data);
+        console.log($('#move-input').val());
+        if ($('#move-input').val() == '') {
+            return;
+        }
+        MoveToExport.moveCall(id.data, $('#move-input').val());
+    },
+
+    cancel: function(id) {
+        MoveToExport.cancelCall(id);
+    },
+
+    cancelCall: function(id) {
+        let request = new XMLHttpRequest();
+        url = '/api/move_to_export/cancel';
+        request.open("POST", url);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.onload = function() {
+            if (request.status == 200) {
+                TableRfresh.freshTable('move-to-export');
+                Modaler.dModal('CANCELED', 'Move of Empty Container To Export Depot Canceled', 'sm')
+            } else {
+                alert('Something went wrong');
+            }
+        };
+        request.send(`id=${id}`);
+
+    },
+
+    iniTable: function () {
+        editor = new $.fn.dataTable.Editor( {
+            ajax: "/api/move_to_export/table",
+            table: "#move-to-export",
+            // template: '#customForm',
+            fields: [ {
+                label: "Container:",
+                name: "number",
+                attr: {
+                    class: "form-control",
+                    maxlength: 10
+                }
+            }, {
+                label: "Shipping Line:",
+                name: "name",
+                attr: {
+                    class: "form-control",
+                    maxlength: 100
+                }
+            }, {
+                label: "Empty Booking:",
+                name: "book_number",
+                attr: {
+                    class: "form-control",
+                    maxlength: 100
+                }
+            },]
+        });
+
+        $('#move-to-export').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url:"/api/move_to_export/table",
+                type:"POST"
+            },
+            serverSide: true,
+            columns: [
+                { data: "number" },
+                { data: "name" },
+                { data: "book_number" },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        var emptyAction = "";
+
+                        if (data.moved_to == null) {
+                            emptyAction += "<a href='#' onclick='MoveToExport.move(" + data.id +")' class='check_cond'>Move</a><br/>";
+                            // gated_record += '<a id="check_cond" class="display_box" href="#" onclick="GateIn.conditionAlert(' + data.id + ',' + '\'' + data.ctnum + '\'' + ')">Check Condition</a><br/>';
+
+                        } else {
+                            emptyAction += "<a href='#' onclick='MoveToExport.cancel(" + data.moved_to +")' class='check_cond'>Cancel</a><br/>";
+                        }
+
+                        return emptyAction;
+                    }
+                },
+            ],
+            select: true,
+            buttons: [
+                { extend: "colvis", className:"btn btn-primary"},
+            ]
+            // buttons: Helpers.permissionButtonBuilder(editor,'Port')
+        });
+    }
+
+}
+
 var GateInHelper={
     permissionButtonBuilder:function (editor, expressEditor,formTitle) {
         var permission=JSON.parse(sessionStorage.getItem('permission'));
@@ -12363,6 +13750,9 @@ var GateInHelper={
         }
         if (permission[system_object]['create'] == 1) {
             buttons.push({extend: "create", editor: expressEditor, formTitle: "Express Gate In", className: "btn btn-primary", text: "Express"});
+        }
+        if (permission[system_object]['create'] == 1) {
+            buttons.push({extend: "create", editor: emptyEditor, formTitle: "Empty Gate In", className: "btn btn-primary", text: "Empty"});
         }
         if (permission[system_object]['update'] == 1) {
             buttons.push({extend: "edit", editor: editor, formTitle: "Edit "+formTitle, className: "btn btn-primary"});
