@@ -630,6 +630,7 @@ var Container= {
 
         editor.field('container.book_number').hide();
         editor.dependent('container.trade_type_code', function (val) {
+            
             if (val == 21) {
                 editor.field('container.voyage').val('');
                 editor.field('container.icl_seal_number_1').val('');
@@ -638,6 +639,7 @@ var Container= {
                 editor.field('container.importer_address').val('');
             }
             else {
+                editor.field('container.voyage').val('');
                 editor.field('container.book_number').val('');
             }
             return val == 21 ?
@@ -817,13 +819,19 @@ var GateIn = {
         var el = document.getElementById('trade_select');
         var type = el.value;
         var consig = document.getElementById('consignee');
+        var book_number = document.getElementById('book_numberID');
 
         if (type == 21) {
             consig.style.display = 'block';
+            book_number.style.display = 'block';
+            document.getElementById('book_number').disabled = true;
         }
         else {
             consig.style.display = 'none';
+            book_number.style.display = 'none';
+            document.getElementById('book_number').disabled = false;
         }
+        
 
         var request = new XMLHttpRequest();
         request.open("POST", "/api/container/get_trade_containers", true);
@@ -847,6 +855,47 @@ var GateIn = {
         request.send("type=" + type);
     },
 
+    getTradetypeInfo: function(gate_record){
+
+        $.ajax({
+            type: "POST",
+            url:"/api/container/get_trade_type_info",
+            data:{
+                gid: gate_record
+            },
+            success: function(data){
+                var result = $.parseJSON(data);
+                if (result == null) {
+                    return;
+                }
+                var trade_type = result.trade_type_code;
+                $('#trade_select').val(trade_type);
+
+                if ($('#trade_select').val() == 21) {
+                    $('#consignee').show();
+                    $('#container').prop('disabled',false);
+                    var checked = false;
+                    GateIn.fieldChecked(checked);
+                    $('#book_number').show();
+
+                    GateIn.loadTradeTypeContainers();
+                }
+                else {
+                    $('#consignee').hide();
+                    $('#container').prop('disabled',false);
+
+                    var checked = true;
+                    GateIn.fieldChecked(checked);
+                    $('#book_number').hide();
+                }
+            },
+            error: function(){
+                alert("something went wrong");
+            }
+        });
+            
+    },
+
     getContainerInfo: function (number) {
         var container = $('#container').val();
         if (container == undefined)
@@ -868,13 +917,14 @@ var GateIn = {
                 var line = result.name;
                 var full_status = result.full_status;
                 var oog_stat = result.oog_status;
-                var trade_type = result.trade_type_code;
                 var imdg = result.iname;
                 var reference = result.reference;
                 var code = result.code;
+                var book_number = result.book_number;
+                
 
-                $('#full_stat').val(full_status ? "YES (Laden)" : "NO");
-                $('#oog').val(oog_stat ? "YES" : "NO");
+                $('#full_stat').val(full_status);
+                $('#oog').val(oog_stat);
                 $('#soc_status').val(soc);
                 $('#imdg').val(imdg);
                 $('#voyage').val(reference);
@@ -882,16 +932,77 @@ var GateIn = {
                 $('#seal_number2').val(seal2);
                 $('#line').val(line);
                 $('#code').val(code);
-                $('#trade_select').val(trade_type);
+                $('#book_number').val(book_number);
 
                 if ($('#trade_select').val() == 21) {
                     $('#consignee').show();
+                    $('#container').prop('disabled',false);
+                    $('#code').prop('disabled',true);
+                    var checked = false;
+                    GateIn.fieldChecked(checked);
+                    $('#code').prop('disabled',true);
+                    $('#book_numberID').show();
+
+                    GateIn.loadTradeTypeContainers();
+                    GateIn.invoiceContainer(container);
                 }
                 else {
                     $('#consignee').hide();
+                    $('#container').prop('disabled',false);
+                    $('#code').prop('disabled',true);
+                    GateIn.invoiceContainer(container);
+                    var checked = true;
+                    GateIn.fieldChecked(checked);
+                    $('#book_numberID').hide();
                 }
 
-                $('#oog').prop("checked", true);
+            },
+            error: function () {
+                $('#myModalLabel').text('ERROR');
+                $('#gate_container').text('Something Went Wrong');
+            }
+        });
+    },
+
+    getContainerEditInfo: function (gate_record) {
+  
+        $.ajax({
+            type: 'POST',
+            url: '/api/container/get_container_edit_info',
+            data: {gid: gate_record},
+            success: function (data) {
+                var result = $.parseJSON(data);
+
+                if (result == null) {
+                    return;
+                }
+
+                var seal1 = result.seal_number_1;
+                var seal2 = result.seal_number_2;
+                var soc = result.soc_status;
+                var line = result.name;
+                var full_status = result.full_status;
+                var oog_stat = result.oog_status;
+                var imdg = result.iname;
+                var reference = result.reference;
+                var code = result.code;
+                var book_number = result.book_number;
+                
+
+                $('#full_stat').val(full_status);
+                $('#oog').val(oog_stat);
+                $('#soc_status').val(soc);
+                $('#imdg').val(imdg);
+                $('#voyage').val(reference);
+                $('#seal_number1').val(seal1);
+                $('#seal_number2').val(seal2);
+                $('#line').val(line);
+                $('#code').val(code);
+                $('#book_number').val(book_number);
+
+                $('#code').prop('disabled',true);
+                $('#trade_select').prop('disabled',true);
+
             },
             error: function () {
                 $('#myModalLabel').text('ERROR');
@@ -949,6 +1060,59 @@ var GateIn = {
         request.send("data=" + id);
     },
 
+    fieldChecked: function(checked){
+        $('#imdg').prop('disabled',checked);
+        $('#soc_status').prop('disabled',checked);
+        $('#full_stat').prop('disabled',checked);
+        $('#oog').prop('disabled',checked);
+        $('#line').prop('disabled',checked);
+    },
+
+    invoiceContainer: function(gate_record){
+        $.ajax({
+            url: "/api/container/get_invoiced_container",
+            type: "POST",
+            data: {
+                gid: gate_record
+            },
+            success: function(data){
+                var result = $.parseJSON(data);
+                if (result == null) {
+                    return;
+                }
+                GateIn.getContainerEditInfo(gate_record);
+
+                if(result.iner){
+                    $('#container').prop('disabled',true);
+                    $('#trade_select').prop('disabled',true);
+                    var checked = true;
+                    GateIn.fieldChecked(checked);
+                }
+                else{
+                    if ($('#trade_select').val() == 21) {
+                        $('#consignee').show();
+                        $('#container').prop('disabled',false);
+                        var checked = false;
+                        GateIn.fieldChecked(checked);
+                        $('#book_numberID').show();
+                        GateIn.loadTradeTypeContainers();
+                    }
+                    else {
+                        $('#consignee').hide();
+                        $('#container').prop('disabled',false);
+                        var checked = true;
+                        GateIn.fieldChecked(checked);
+                        $('#book_numberID').hide();
+                    }
+                }
+
+            },
+            error: function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
     iniTable: function () {
         editor = new $.fn.dataTable.Editor({
             ajax: "/api/gate_in/table",
@@ -985,15 +1149,28 @@ var GateIn = {
                 name: "gate_record.type",
                 def: 1,
                 hidden: true
+            },{
+                label: "Booking Number:",
+                name: "book_number",
+                attr:{
+                    id: "book_number",
+                    class: "form-control",
+                    maxLength: 20
+                }
             },
                 {
                     label: "SOC:",
                     name: "soc",
+                    type: "select",
                     attr: {
                         id: 'soc_status',
                         class: "form-control",
                         disabled: true
-                    }
+                    },
+                    options: [
+                        {label: "NO", value: "NO"},
+                        {label: "YES", value: "YES"}
+                    ]
                 },
                 {
                     label: "Voyage:",
@@ -1011,7 +1188,8 @@ var GateIn = {
                         list: "Shipping Line",
                         id: "line",
                         class: "form-control",
-                        disabled: true
+                        disabled: true,
+                        list: "lines"
                     }
                 }, {
                     label: "Depot:",
@@ -1033,7 +1211,8 @@ var GateIn = {
                     attr: {
                         id: "code",
                         class: "form-control",
-                        disabled: true
+                        disabled: true,
+                        list: "iso_code"
                     }
                 }, {
                     label: "IMDG:",
@@ -1042,24 +1221,35 @@ var GateIn = {
                         id: "imdg",
                         class: "form-control",
                         list: "imdgs",
-                        disabled: true
+                        disabled: true,
+                        list: "imdgs"
                     },
                 }, {
                     label: "Full Status:",
                     name: "full_status",
+                    type: "select",
                     attr: {
                         id: "full_stat",
                         class: "form-control",
                         disabled: true
                     },
+                    options: [
+                        {label: "YES (Laden)", value: 1},
+                        {label: "NO", value: 0}
+                    ]
                 }, {
                     label: "OOG:",
                     name: "oog",
+                    type: "select",
                     attr: {
                         id: "oog",
                         class: "form-control",
                         disabled: true
                     },
+                    options: [
+                        {label: "NO", value: 0},
+                        {label: "YES", value: 1}
+                    ]
                 }, {
                     label: "Seal Number 1:",
                     name: "seal_number_1",
@@ -1111,6 +1301,7 @@ var GateIn = {
                     attr: {
                         id: 'consignee',
                         class: "form-control",
+                        list:"customers_name",
                         maxlength: 255,
                     }
                 }, {
@@ -1149,6 +1340,13 @@ var GateIn = {
                         id: "full_stat",
                         class: "form-control"
                     }
+                },
+                {
+                    label: "System Waybill",
+                    name: "gate_record.sys_waybill",
+                    attr: {
+                        class: "form-control"
+                    }
                 }, {
                     label: "EIR/Waybill No:",
                     name: "gate_record.waybill",
@@ -1176,9 +1374,11 @@ var GateIn = {
                 }]
         });
 
+        editor.field('gate_record.sys_waybill').hide();
         editor.field('gate_record.status').hide();
         editor.field('gate_record.type').hide();
         editor.field('gate_record.user_id').hide();
+        
 
         expressEditor = new $.fn.dataTable.Editor({
             ajax: "/api/gate_in/table",
@@ -1436,6 +1636,7 @@ var GateIn = {
         expressEditor.field('gate_record.type').hide();
         expressEditor.field('gate_record.user_id').hide();
 
+// <<<<<<< HEAD
         emptyEditor = new $.fn.dataTable.Editor({
             ajax: "/api/gate_in/table",
             table: "#gate_in",
@@ -1706,6 +1907,14 @@ var GateIn = {
         emptyEditor.field('gate_record.type').hide();
         emptyEditor.field('gate_record.user_id').hide();
 
+// =======
+        editor.on('initEdit', function() {
+            if(editor.field('trade').val() == 21){
+                editor.field('trade').enable();
+            }
+        });
+
+// >>>>>>> master
         var container_check = false;
 
         expressEditor.on('preSubmit', function (e, o, action) {
@@ -1914,9 +2123,6 @@ var GateIn = {
         });
 
         editor.on('open', function () {
-            var number = editor.field('gate_record.container_id').val();
-            GateIn.getContainerInfo(number);
-
             $('#container').focusout(function () {
                 var number = editor.field('gate_record.container_id').val();
                 GateIn.getContainerInfo(number);
@@ -1924,10 +2130,148 @@ var GateIn = {
         });
 
         editor.on('preSubmit', function (e, o, action) {
-            var number = editor.field('gate_record.container_id').val();
-            GateIn.getContainerInfo(number);
+            var trade_type = this.field('trade').val();
+
+            var error_check = false;
+
+            if (action === 'edit' && trade_type == 21) {
+                var table = $('#gate_in').DataTable();
+                var rowData = table.row({selected: true}).data();
+                var container_number = rowData['gate_record']['container_id'];
+                var number = container_number.toString();
+                var gate_record = rowData['gid'];
+                
+                var container_no = this.field('gate_record.container_id');
+                var seal_no1 = this.field('seal_number_1');
+                var seal_no2 = this.field('seal_number_2');
+                var imdg = this.field('imdg');
+                var shipping_line = this.field('shipping_line');
+                var oog_status = this.field('oog');
+                var full_status = this.field('full_status');
+                var soc_status = this.field('soc');
+                var book_number = this.field('book_number');
+                
+                $.ajax({
+                    url:"/api/container/edit_export_container",
+                    type:"POST",
+                    async: false,
+                    data:{
+                        ctno: container_no.val(),
+                        imdg: imdg.val(),
+                        fstat: full_status.val(),
+                        soc: soc_status.val(),
+                        seal1: seal_no1.val(),
+                        seal2: seal_no2.val(),
+                        shid: shipping_line.val(),
+                        oog: oog_status.val(),
+                        rctno: number,
+                        bkno: book_number.val(),
+                        gid: gate_record
+                    },
+                    success: function(data){
+                        var data = JSON.parse(data);
+                        if (data.st == 161) {
+                            if (data.err.seal1) {
+                                seal_no1.error("Empty field");
+                                var seal_number1 = document.querySelector('#seal_number1');
+                                seal_number1.scrollIntoView();
+                            }
+                            else if (data.err.sea1 == 'senu1') {
+                                seal_no1.error("Seal number 1 must not contain symbols");
+                                var seal_number1 = document.querySelector('#seal_number1');
+                                seal_number1.scrollIntoView();
+                            }
+                            if (data.err.seal2) {
+                                seal_no2.error("Empty field");
+                                var seal_number2 = document.querySelector('#seal_number2');
+                                seal_number2.scrollIntoView();
+                            }
+                            else if (data.err.sea2 == 'senu2') {
+                                seal_no2.error("Seal number 2 must not contain symbols");
+                                var seal_number2 = document.querySelector('#seal_number2');
+                                seal_number2.scrollIntoView();
+                            }
+                            if (data.err.bknu) {
+                                book_number.error("Empty field");
+                                var book_num = document.querySelector('#book_numberID');
+                                book_num.scrollIntoView();
+                            }
+                            else if (data.err.bkerr == 'bkn_err') {
+                                book_number.error("Booking Number must not contains symbols");
+                                var book_num = document.querySelector('#book_numberID');
+                                book_num.scrollIntoView();
+                            }
+                            if (data.err.img) {
+                                if (!imdg.val()) {
+                                    imdg.error("Empty field");
+                                }
+                                else {
+                                    imdg.error("IMDG Code does not exist");
+                                }
+                                var imdgs = document.querySelector('#imdg');
+                                imdgs.scrollIntoView();
+                            }
+                            if (data.err.iso) {
+                                if (!iso.val()) {
+                                    iso.error("Empty field");
+                                }
+                                else {
+                                    iso.error("ISO Code does not exist");
+                                }
+                                var iso_code = document.querySelector('#iso_code');
+                                iso_code.scrollIntoView();
+                            }
+                            if (data.err.sline) {
+                                if (!imdg.val()) {
+                                    shipping_line.error("Empty field");
+                                }
+                                else {
+                                    shipping_line.error("Shipping Line does not exist");
+                                }
+                                var shipping_line_id = document.querySelector('#line');
+                                shipping_line_id.scrollIntoView();
+                            }
+                            if(data.err.cnerr){
+                                container_no.error("Empty field");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
+                            else if (data.err.cner == 'ctn_err') {
+                                container_no.error("Container number cannot contain symbols");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
+                            if(data.err.clen){
+                                container_no.error("Container number must not be less that 11 charactors.");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
+                            if (data.err.trter) {
+                                container_no.error("Container is not EXPORT trade type");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView();
+                            }
+                            if(data.err.flag){
+                                container_no.error("Container has been flagged");
+                                var container = document.querySelector('#container');
+                                container.scrollIntoView(); 
+                            }
+                        
+                    }
+                    else if (data.st == 261) {
+                        error_check = true;
+                    }
+                },
+                error: function(){
+                    alert("Something went wrong");
+                }
+            });
+            return error_check;
+            }
+            
         });
 
+    
         var container_number_error = false;
 
         expressEditor.on('initSubmit', function (e, o, action) {
@@ -2071,9 +2415,25 @@ var GateIn = {
                                     container_no.error('Empty field');
                                 }
                             }
+                           
                             var exports = document.querySelector('#exportID');
                             exports.scrollIntoView();
                             container_number_error = true;
+                        }
+                        if(data.err.trte == "trer"){
+                            container_no.error("Container is not EXPORT trade type");
+                            var container = document.querySelector('#exportID');
+                            container.scrollIntoView();
+                        }
+                        if(data.err.isoer == "iso_er"){
+                            iso.error("Container ISO Code is "+ data.err.isod);
+                            var iso_code = document.querySelector('#iso_code');
+                            iso_code.scrollIntoView();
+                        }
+                        if(data.err.flag == "flagged"){
+                            container_no.error("Container has been flagged");
+                            var container = document.querySelector('#exportID');
+                            container.scrollIntoView();
                         }
                     }
                     else if (data.st == 260) {
@@ -2358,6 +2718,31 @@ var GateIn = {
                 }]
         });
 
+        editor.on('edit', function(){
+            var table = $('#gate_in').DataTable();
+            var rowData = table.row({selected: true}).data();
+            var container_number = rowData['gate_record']['container_id'];
+            var number = container_number.toString();
+
+            var container_number_field = this.field('gate_record.container_id').val();
+            if(number != container_number_field){
+                $.ajax({
+                    url: "/api/container/update_container_gate_status",
+                    type: "POST",
+                    data:{
+                        cnum: container_number_field,
+                        num: number
+                    },
+                    success: function(data){
+    
+                    },
+                    error: function(){
+                        alert('something went wrong');
+                    }
+                });
+            }
+          
+        });
 
         add_gatein_condition.on('submitSuccess', function () {
             TableRfresh.freshTable('gate_in');
@@ -2387,6 +2772,7 @@ var GateIn = {
             });
         });
 
+
         editor.on('submitComplete', function (e, json, data, action) {
             if (action === 'remove') {
                 var status = json.cancelled;
@@ -2403,10 +2789,11 @@ var GateIn = {
                 type: "POST"
             },
             serverSide: true,
-            columnDefs: [{type: 'date', 'targets': [15]}, {"searchable": false, "targets": 18}
+            columnDefs: [{type: 'date', 'targets': [16]}, {"searchable": false, "targets": 19}
             ],
-            order: [[9, 'desc']],
+            order: [[10, 'desc']],
             columns: [
+                {data: "gid", visible: false},
                 {data: "ctnum"},
                 {data: "isoc"},
                 {data: "vyref"},
@@ -2460,8 +2847,13 @@ var GateIn = {
             var table = $('#gate_in').DataTable();
             var rowData = table.row({selected: true}).data();
             var container_number = rowData['gate_record']['container_id'];
-            var number = container_number.toString();
-            GateIn.getContainerInfo(number);
+            var gate_record_id = rowData['gid'];
+            var number = container_number.toString();        
+           
+           
+            GateIn.getTradetypeInfo(gate_record_id);
+            // GateIn.getContainerEditInfo(gate_record_id);
+            GateIn.invoiceContainer(gate_record_id);
         });
     }
 }
@@ -2639,6 +3031,8 @@ var GateOut= {
                     class: "form-control",
                     list:"container_out",
                     onselect:"GateOut.getDrivers()",
+                    onkeyup: "GateOut.getDrivers()",
+                    onchange:"GateOut.getDrivers()",
                     maxlength: 11,
                     id: "container"
                 }
@@ -3348,6 +3742,10 @@ var InvoiceNote={
                 }]
         });
 
+        edit_note.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
         $('#view_notes').DataTable( {
             dom: "Bfrtip",
             ajax: {
@@ -3367,7 +3765,7 @@ var InvoiceNote={
             ],
             select: true,
             buttons: [
-                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+                { extend: "edit", editor: edit_note,formTitle:"Edit Note", className:"btn btn-primary" }
             ]
         });
     }
@@ -3391,6 +3789,10 @@ var SuppsInvoiceNote={
                 }]
         });
 
+        edit_note.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
         $('#view_notes').DataTable( {
             dom: "Bfrtip",
             ajax: {
@@ -3410,7 +3812,7 @@ var SuppsInvoiceNote={
             ],
             select: true,
             buttons: [
-                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+                { extend: "edit", editor: edit_note,formTitle:"Edit Note", className:"btn btn-primary" }
             ]
         });
     }
@@ -3434,6 +3836,10 @@ var ProformaInvoiceNote={
                 }]
         });
 
+        edit_note.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
         $('#view_notes').DataTable( {
             dom: "Bfrtip",
             ajax: {
@@ -3453,7 +3859,7 @@ var ProformaInvoiceNote={
             ],
             select: true,
             buttons: [
-                { extend: "edit", editor: edit_note, className:"btn btn-primary" }
+                { extend: "edit", editor: edit_note,formTitle:"Edit Note", className:"btn btn-primary" }
             ]
         });
     }
@@ -3593,6 +3999,32 @@ var ContainerCondition = {
     }
 }
 
+var Activity = {
+    is_proforma:false,
+    invoicedActivity: function(logged_id){
+        $.ajax({
+            url:"/api/depot_overview/acitivty_invoiced",
+            type: "POST",
+            data: {
+                logg: logged_id,
+                prof: Activity.is_proforma ? 1 : 0
+            },
+            success: function(data){
+                var result = $.parseJSON(data);
+                if(result.err){
+                    $('#activity').prop("disabled",true);
+                }
+                else{
+                    $('#activity').prop("disabled",false);
+                }
+            },
+            error: function(){
+                alert("something went wrong");
+            }
+        });
+    }
+}
+
 var DepotOver = {
     activityAlert: function (id, container) {
 
@@ -3600,7 +4032,7 @@ var DepotOver = {
 
         var header = container;
         var body = "<div class=\"col-md-12\"><table id=\"container_activity\" class=\"display table-responsive\">" +
-            "<thead><tr><th>Activity </th><th>Note</th><th>User</th><th>Date</th><th>ID</th></tr></thead>" +
+            "<thead><tr><th>ID</th><th>Activity </th><th>Note</th><th>User</th><th>Date</th></tr></thead>" +
             "</table></div>";
         CondModal.cModal(header, body);
 
@@ -3676,7 +4108,8 @@ var DepotOver = {
                     name: "container_log.activity_id",
                     attr: {
                         class: "form-control",
-                        list: "activity_list"
+                        list: "activity_list",
+                        id: "activity"
                     }
                 }, {
                     label: "Note:",
@@ -3703,6 +4136,7 @@ var DepotOver = {
             $('.modal').removeAttr('tabindex');
         });
 
+
         actEditor.on('open', function () {
             $('.modal').removeAttr('tabindex');
         });
@@ -3724,6 +4158,7 @@ var DepotOver = {
             order: [[ 3, 'asc' ]],
             serverSide: true,
             columns: [
+                { data: "loged"},
                 { data: "name" },
                 { data: "container_log.note" },
                 { data: "container_log.user_id" },
@@ -3738,10 +4173,12 @@ var DepotOver = {
             ]
         });
 
-        // actEditor.on('preRemove', function () {
-        //    alert('ok');
-        // });
-
+        actEditor.on('onInitEdit', function () {
+            var table = $('#container_activity').DataTable();
+            var rowData = table.row({selected: true}).data();
+            var container_log_id = rowData['loged'];
+            Activity.invoicedActivity(container_log_id);
+        });
     },
 
     addContainerInfo:function(container_number, id) {
@@ -3997,7 +4434,7 @@ var ProformaDepotOver = {
 
         var header = container;
         var body = "<div class=\"col-md-12\"><table id=\"container_activity\" class=\"display table-responsive\">" +
-            "<thead><tr><th>Activity </th><th>Note</th><th>User</th><th>Date</th><th>ID</th></tr></thead>" +
+            "<thead><tr><th>ID</th><th>Activity </th><th>Note</th><th>User</th><th>Date</th></tr></thead>" +
             "</table></div>";
         CondModal.cModal(header, body);
 
@@ -4074,7 +4511,8 @@ var ProformaDepotOver = {
                     name: "proforma_container_log.activity_id",
                     attr: {
                         class: "form-control",
-                        list: "activity_list"
+                        list: "activity_list",
+                        id: "activity"
                     }
                 }, {
                     label: "Note:",
@@ -4109,6 +4547,14 @@ var ProformaDepotOver = {
             TableRfresh.freshTable('container_activity');
         });
 
+        actEditor.on('onInitEdit', function () {
+            var table = $('#container_activity').DataTable();
+            var rowData = table.row({selected: true}).data();
+            var container_log_id = rowData['loged'];
+            Activity.is_proforma = 1;
+            Activity.invoicedActivity(container_log_id);
+        });
+
         $('#container_activity').DataTable({
             dom: "Bfrtip",
             ajax: {
@@ -4119,9 +4565,10 @@ var ProformaDepotOver = {
                 }
             },
             columnDefs: [{type: 'date', 'targets': [3]}],
-            order: [[3, 'asc']],
+            order: [[4, 'asc']],
             serverSide: true,
             columns: [
+                { data: "loged"},
                 {data: "name"},
                 {data: "proforma_container_log.note"},
                 {data: "proforma_container_log.user_id"},
@@ -5191,6 +5638,7 @@ var LetPass = {
             },
             serverSide: true,
             columnDefs: [ { "searchable": false, "targets": 4 } ],
+            order: [[ 2, 'desc' ]],
             columns: [
                 { data: "lnum" },
                 { data: "invd"},
@@ -5321,7 +5769,6 @@ var Invoicing = {
 
             var failed = false;
 
-            // alert(customer);
             if (customer == '') {
                 $('#customer_error').text('Customer field cannot be empty');
                 failed = true;
@@ -5498,6 +5945,7 @@ var Invoicing = {
         });
 
         var charges = 0;
+        var ucl_check = false;
 
         $('#preview_button').on('click',function (e) {
             var datePattern = new RegExp("\\d{4}-\\d{2}-\\d{2}");
@@ -5568,11 +6016,11 @@ var Invoicing = {
                             cont: JSON.stringify(list)
                         },
                         success: function (data) {
-                            console.log(data);
                             let parsedData = JSON.parse(data);
-                            console.log(parsedData);
-                            $('#preview-left .removable').remove();
+                            if( ActivityCheckCharges.checkCharges(parsedData) && parsedData.st == 2844){
+                                $('#preview-left .removable').remove();
 
+// <<<<<<< HEAD
                             document.getElementById('company-name').innerHTML = parsedData.companyName;
                             document.getElementById('company-address').innerHTML = parsedData.companyLocation;
 
@@ -5657,7 +6105,7 @@ var Invoicing = {
 
                             let fragment = document.createDocumentFragment();
 
-                            parsedData.activities.forEach(activity => {
+                            /* parsedData.activities.forEach(activity => {
                                 let row = document.createElement('tr');
                                 $(row).attr('class', 'removable');
 
@@ -5665,94 +6113,158 @@ var Invoicing = {
                                 descriptionData.innerHTML = activity.description;
 
                                 let quantityData = document.createElement('td');
-                                quantityData.innerHTML = activity.qty;
+                                quantityData.innerHTML = activity.qty; */
+/* =======
+                                document.getElementById('company-name').innerHTML = parsedData.companyName;
+                                document.getElementById('company-address').innerHTML = parsedData.companyLocation;
+    
+                                let contactString = parsedData.companyPhone + "  ||  " + parsedData.companyMail + "  ||  " 
+                                        + parsedData.companyWeb;
+                                document.getElementById('company-contacts').innerHTML = contactString;
+    
+                                document.getElementById('invoice-date').innerHTML = parsedData.invoiceDate;
+                                document.getElementById('invoice-no').innerHTML = parsedData.invoiceNumber;
+                                document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
+                                document.getElementById('tin').innerHTML = parsedData.tin;
+>>>>>>> master */
                                 
-
-                                let costData = document.createElement('td');
-                                costData.setAttribute('class', 'table-money');
-                                costData.innerHTML = activity.cost;
-
-                                let totalCostData = document.createElement('td');
-                                totalCostData.setAttribute('class', 'table-money');
-                                totalCostData.innerHTML = activity.total_cost;
-
-                                row.append(descriptionData, quantityData, costData, totalCostData);
-                                fragment.append(row);
-                            });
-
-                            let secondFragment = document.createDocumentFragment();
-
-                            parsedData.taxDetails.forEach(taxDetail => {
-                                let emptyData = document.createElement('td');
-                                let row = document.createElement('tr');
-                                $(row).attr('class', 'removable');
-
-                                let taxName = document.createElement('th');
-                                taxName.setAttribute('colspan', '2');
-                                taxName.innerHTML = taxDetail.details;
-
-                                let taxAmount = document.createElement('td');
-                                taxAmount.setAttribute('class', 'table-money');
-                                taxAmount.innerHTML = taxDetail.amount;
-
-                                row.append(emptyData, taxName, taxAmount);
-                                secondFragment.append(row);
-
-                            });
-
-
-                            let mainTableBody = document.getElementById('main-table');
-                            console.log(mainTableBody);
-
-                            mainTableBody.insertBefore(fragment, (mainTableBody.rows)[0]);
-
-                            mainTableBody.insertBefore(secondFragment, (mainTableBody.rows)[mainTableBody.rows.length - 2]);
-
-                            document.getElementById('subtotal').innerHTML = parsedData.subtotal;
-
-                            document.getElementById('total-tax').innerHTML = parsedData.totalTax;
-                            document.getElementById('total-amount').innerHTML = parsedData.totalAmount;
-
-                            let thirdFragment = document.createDocumentFragment();
-                            let count = 0;
-
-                            parsedData.containerDetails.forEach(containerDetail => {
-                                let row = document.createElement('tr');
-                                $(row).attr('class', 'removable');
-
-                                let number = document.createElement('td');
-                                number.innerHTML = ++count;
-
-                                let containerNumber = document.createElement('td');
-                                containerNumber.innerHTML = containerDetail.number;
-
-                                let isoType = document.createElement('td');
-                                isoType.innerHTML = containerDetail.code;
-
-                                let containerType = document.createElement('td');
-                                containerType.innerHTML = containerDetail.containerType;
-
-                                let goodDescription = document.createElement('td');
-                                goodDescription.innerHTML = containerDetail.goods;
-
-                                row.append(number, containerNumber, isoType, containerType, goodDescription);
-                                thirdFragment.append(row);
-                            });
-
-                            document.getElementById('container-list').append(thirdFragment);
-
-                            midInfo.style.position = 'absolute';
-                       
-                            $('#messages-left').removeClass('active');
-                            $('#messages-left').removeClass('show');
-                            $('#charge-link').removeClass('active');
-                            $('#charge-link').removeAttr('href', '#messages-left');
-                            $('#preview-left').addClass('active');
-                            $('#preview-left').addClass('show');
-                            $('#preview-link').addClass('active');
-                            $('#preview-link').attr('href', '#preview-left');
-                            // $('#homes').removeAttr('href', '#home-left');
-
+                                /* if (trade == '11') {
+                                    document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
+                                    document.getElementById('agency-td').innerHTML = parsedData.agency;
+                                    document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
+                                    document.getElementById('customer-td').innerHTML = parsedData.customer;
+    
+                                    document.getElementById('vessel-td').innerHTML = parsedData.vessel;
+                                    document.getElementById('voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                    document.getElementById('arrival-date-td').innerHTML = parsedData.arrivalDate;
+                                    document.getElementById('departure-date-td').innerHTML = parsedData.departureDate;
+                                    document.getElementById('rotation-number-td').innerHTML = parsedData.rotationNumber;
+    
+                                    document.getElementById('bl-number-td').innerHTML = parsedData.bNumber;
+                                    document.getElementById('boe-number-td').innerHTML = parsedData.boeNumber;
+                                    document.getElementById('do-number-td').innerHTML = parsedData.doNumber;
+                                    document.getElementById('release-date-td').innerHTML = '';
+                                    document.getElementById('containers-td').innerHTML = parsedData.containers;
+                                } else if (trade == '21') {
+                                    document.getElementById('shipper-td').innerHTML = parsedData.shipper;
+                                    document.getElementById('ship-line-td').innerHTML = parsedData.shippingLine;
+                                    document.getElementById('exp-customer-td').innerHTML = parsedData.customer;
+    
+                                    document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
+                                    document.getElementById('exp-voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                    document.getElementById('booking-number-td').innerHTML = parsedData.bNumber;
+                                    document.getElementById('booking-date-td').innerHTML = parsedData.bookingDate;
+    
+                                    document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
+    
+                                }
+    
+                                let midInfo = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
+                                console.log(document.querySelector('div.business'));
+    
+                                $(midInfo).css('position', 'static');
+                                let previewLeft = document.getElementById('preview-left');
+                                console.log(midInfo.cloneNode(true));
+                                previewLeft.insertBefore(midInfo.cloneNode(true), document.querySelector('div.business'));
+                                previewLeft.insertBefore(document.createElement('br'), document.querySelector('div.business'));
+    
+                                let fragment = document.createDocumentFragment() */;
+    
+                                parsedData.activities.forEach(activity => {
+                                    let row = document.createElement('tr');
+                                    $(row).attr('class', 'removable');
+    
+                                    let descriptionData = document.createElement('td');
+                                    descriptionData.innerHTML = activity.description;
+    
+                                    let quantityData = document.createElement('td');
+                                    quantityData.innerHTML = activity.qty;
+                                    
+    
+                                    let costData = document.createElement('td');
+                                    costData.setAttribute('class', 'table-money');
+                                    costData.innerHTML = activity.cost;
+    
+                                    let totalCostData = document.createElement('td');
+                                    totalCostData.setAttribute('class', 'table-money');
+                                    totalCostData.innerHTML = activity.total_cost;
+    
+                                    row.append(descriptionData, quantityData, costData, totalCostData);
+                                    fragment.append(row);
+                                });
+    
+                                let secondFragment = document.createDocumentFragment();
+    
+                                parsedData.taxDetails.forEach(taxDetail => {
+                                    let emptyData = document.createElement('td');
+                                    let row = document.createElement('tr');
+                                    $(row).attr('class', 'removable');
+    
+                                    let taxName = document.createElement('th');
+                                    taxName.setAttribute('colspan', '2');
+                                    taxName.innerHTML = taxDetail.details;
+    
+                                    let taxAmount = document.createElement('td');
+                                    taxAmount.setAttribute('class', 'table-money');
+                                    taxAmount.innerHTML = taxDetail.amount;
+    
+                                    row.append(emptyData, taxName, taxAmount);
+                                    secondFragment.append(row);
+    
+                                });
+    
+    
+                                let mainTableBody = document.getElementById('main-table');
+                                console.log(mainTableBody);
+    
+                                mainTableBody.insertBefore(fragment, (mainTableBody.rows)[0]);
+    
+                                mainTableBody.insertBefore(secondFragment, (mainTableBody.rows)[mainTableBody.rows.length - 2]);
+    
+                                document.getElementById('subtotal').innerHTML = parsedData.subtotal;
+    
+                                document.getElementById('total-tax').innerHTML = parsedData.totalTax;
+                                document.getElementById('total-amount').innerHTML = parsedData.totalAmount;
+    
+                                let thirdFragment = document.createDocumentFragment();
+                                let count = 0;
+    
+                                parsedData.containerDetails.forEach(containerDetail => {
+                                    let row = document.createElement('tr');
+                                    $(row).attr('class', 'removable');
+    
+                                    let number = document.createElement('td');
+                                    number.innerHTML = ++count;
+    
+                                    let containerNumber = document.createElement('td');
+                                    containerNumber.innerHTML = containerDetail.number;
+    
+                                    let isoType = document.createElement('td');
+                                    isoType.innerHTML = containerDetail.code;
+    
+                                    let containerType = document.createElement('td');
+                                    containerType.innerHTML = containerDetail.containerType;
+    
+                                    let goodDescription = document.createElement('td');
+                                    goodDescription.innerHTML = containerDetail.goods;
+    
+                                    row.append(number, containerNumber, isoType, containerType, goodDescription);
+                                    thirdFragment.append(row);
+                                });
+    
+                                document.getElementById('container-list').append(thirdFragment);
+    
+                                midInfo.style.position = 'absolute';
+                           
+                                $('#messages-left').removeClass('active');
+                                $('#messages-left').removeClass('show');
+                                $('#charge-link').removeClass('active');
+                                $('#charge-link').removeAttr('href', '#messages-left');
+                                $('#preview-left').addClass('active');
+                                $('#preview-left').addClass('show');
+                                $('#preview-link').addClass('active');
+                                $('#preview-link').attr('href', '#preview-left');
+                            }
                         },
                         error: function () {
                             $('#manualHeader').text('ERROR');
@@ -5764,6 +6276,9 @@ var Invoicing = {
         });
 
         $('#invoice_button').on('click',function (e) {
+
+            // alert(ucl_check);
+
             var datePattern = new RegExp("\\d{4}-\\d{2}-\\d{2}");
             var customer = $('#customer_id').val();
 
@@ -5774,12 +6289,12 @@ var Invoicing = {
             var  currentDate = yyyy + "-" + MM + "-" + dd;
             var pDateValue = document.getElementById('upto_date').value;
 
-            if (!datePattern.test(pDateValue)) {
+            if (!datePattern.test(pDateValue) && ucl_check == false) {
                 Modaler.dModal('ERROR', 'Wrong Paid-Up-To Date');
             }
             else {
 
-                if (!(pDateValue >= currentDate)) {
+                if (!(pDateValue >= currentDate) && ucl_check == false) {
                     Modaler.dModal('ERROR', 'Invalid Date');
                 }
                 else {
@@ -5810,6 +6325,7 @@ var Invoicing = {
                             list.push(inputs[input].value.split(" ")[0]);
                         }
                     }
+                    
 
                     $("#storage_button").attr("disabled", true);
 
@@ -5824,7 +6340,7 @@ var Invoicing = {
                             tax: tax_type,
                             curr: invoice_currency,
                             note: note,
-                            pdate: pDateValue,
+                            pdate: pDateValue != "" ? pDateValue : null,
                             trty: trade,
                             voy: voyage_id,
                             cust: customers_id,
@@ -5842,6 +6358,9 @@ var Invoicing = {
                                     }
                                     if ($('#trade_type').val() == 21) {
                                         $('#invoice_link').html('<a href="/api/proforma_export_invoice/show_export/' + invoice_number + '" target="_blank">View Export Invoice</a>');
+                                    }
+                                    if ($('#trade_type').val() == 70) {
+                                        $('#invoice_link').html('<a href="/api/proforma_empty_invoice/show_export/' + invoice_number + '" target="_blank">View Empty Invoice</a>');
                                     }
                                 }
                                 else {
@@ -5929,6 +6448,9 @@ var Invoicing = {
                             }
 
                             if (result.st == 1570){
+
+                                ucl_check = true;
+
                                 var customers_id = document.getElementById('customer_id').value;
                                 var b_number = $('#b_number').val();
                                 var boe_number = $('#boe_number').val();
@@ -5944,17 +6466,6 @@ var Invoicing = {
 
                                 var invoice_number = '';
 
-                                $('#error_label').remove();
-                                $('#profile-left').removeClass('active');
-                                $('#profile-left').removeClass('show');
-                                $('#profiles').removeClass('active');
-                                $('#profiles').removeAttr('href', '#profile-left');
-                                $('#messages-left').addClass('active');
-                                $('#messages-left').addClass('show');
-                                $('#charge-link').addClass('active');
-                                $('#charge-link').attr('href', '#invoice-left');
-                                $('#homes').removeAttr('href', '#home-left');
-
                                 var trade = $('#trade_type').val();
 
                                 //ajax request for inserting data into invoice
@@ -5965,8 +6476,10 @@ var Invoicing = {
                                         list.push(inputs[input].value.split(" ")[0]);
                                     }
                                 }
+
+
                                 $.ajax({
-                                    url: "/api/invoice/add_invoice",
+                                    url: "/api/invoice_preview/previewInvoice",
                                     type: "POST",
                                     data: {
                                         bnum: b_number,
@@ -5983,30 +6496,158 @@ var Invoicing = {
                                         cont: JSON.stringify(list)
                                     },
                                     success: function (data) {
-                                        var result = $.parseJSON(data);
-
-                                        ActivityCheckCharges.checkCharges(result);
-
-                                        if (result.st == 2211) {
-                                            invoice_number = result.invn;
-                                            if (Invoicing.is_proforma){
-                                                if ($('#trade_type').val() == 11) {
-                                                    $('#invoice_link').html('<a href="/api/proforma_import_invoice/show_import/' + invoice_number + '" target="_blank">View Import Invoice</a>');
-                                                }
-                                                if ($('#trade_type').val() == 21) {
-                                                    $('#invoice_link').html('<a href="/api/proforma_export_invoice/show_export/' + invoice_number + '" target="_blank">View Export Invoice</a>');
-                                                }
+                                        let parsedData = JSON.parse(data);
+                                        if( ActivityCheckCharges.checkCharges(parsedData) && parsedData.st == 2844){
+                                            $('#preview-left .removable').remove();
+            
+                                            document.getElementById('company-name').innerHTML = parsedData.companyName;
+                                            document.getElementById('company-address').innerHTML = parsedData.companyLocation;
+                
+                                            let contactString = parsedData.companyPhone + "  ||  " + parsedData.companyMail + "  ||  " 
+                                                    + parsedData.companyWeb;
+                                            document.getElementById('company-contacts').innerHTML = contactString;
+                
+                                            document.getElementById('invoice-date').innerHTML = parsedData.invoiceDate;
+                                            document.getElementById('invoice-no').innerHTML = parsedData.invoiceNumber;
+                                            document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
+                                            document.getElementById('tin').innerHTML = parsedData.tin;
+                                            
+                                            if (trade == '11') {
+                                                document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
+                                                document.getElementById('agency-td').innerHTML = parsedData.agency;
+                                                document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
+                                                document.getElementById('customer-td').innerHTML = parsedData.customer;
+                
+                                                document.getElementById('vessel-td').innerHTML = parsedData.vessel;
+                                                document.getElementById('voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                                document.getElementById('arrival-date-td').innerHTML = parsedData.arrivalDate;
+                                                document.getElementById('departure-date-td').innerHTML = parsedData.departureDate;
+                                                document.getElementById('rotation-number-td').innerHTML = parsedData.rotationNumber;
+                
+                                                document.getElementById('bl-number-td').innerHTML = parsedData.bNumber;
+                                                document.getElementById('boe-number-td').innerHTML = parsedData.boeNumber;
+                                                document.getElementById('do-number-td').innerHTML = parsedData.doNumber;
+                                                document.getElementById('release-date-td').innerHTML = '';
+                                                document.getElementById('containers-td').innerHTML = parsedData.containers;
+                                            } else if (trade == '21') {
+                                                document.getElementById('shipper-td').innerHTML = parsedData.shipper;
+                                                document.getElementById('ship-line-td').innerHTML = parsedData.shippingLine;
+                                                document.getElementById('exp-customer-td').innerHTML = parsedData.customer;
+                
+                                                document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
+                                                document.getElementById('exp-voyage-no-td').innerHTML = parsedData.voyageNumber;
+                                                document.getElementById('booking-number-td').innerHTML = parsedData.bNumber;
+                                                document.getElementById('booking-date-td').innerHTML = parsedData.bookingDate;
+                
+                                                document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
+                
                                             }
-                                            else{
-                                                if ($('#trade_type').val() == 11) {
-                                                    $('#invoice_link').html('<a href="/api/import_invoice/show_import/' + invoice_number + '" target="_blank">View Import Invoice</a>');
-                                                }
-
-                                                if ($('#trade_type').val() == 21) {
-                                                    $('#invoice_link').html('<a href="/api/export_invoice/show_export/' + invoice_number + '" target="_blank">View Export Invoice</a>');
-                                                }
-                                            }
-
+                
+                                            let midInfo = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
+                                            console.log(document.querySelector('div.business'));
+                
+                                            $(midInfo).css('position', 'static');
+                                            let previewLeft = document.getElementById('preview-left');
+                                            console.log(midInfo.cloneNode(true));
+                                            previewLeft.insertBefore(midInfo.cloneNode(true), document.querySelector('div.business'));
+                                            previewLeft.insertBefore(document.createElement('br'), document.querySelector('div.business'));
+                
+                                            let fragment = document.createDocumentFragment();
+                
+                                            parsedData.activities.forEach(activity => {
+                                                let row = document.createElement('tr');
+                                                $(row).attr('class', 'removable');
+                
+                                                let descriptionData = document.createElement('td');
+                                                descriptionData.innerHTML = activity.description;
+                
+                                                let quantityData = document.createElement('td');
+                                                quantityData.innerHTML = activity.qty;
+                                                
+                
+                                                let costData = document.createElement('td');
+                                                costData.setAttribute('class', 'table-money');
+                                                costData.innerHTML = activity.cost;
+                
+                                                let totalCostData = document.createElement('td');
+                                                totalCostData.setAttribute('class', 'table-money');
+                                                totalCostData.innerHTML = activity.total_cost;
+                
+                                                row.append(descriptionData, quantityData, costData, totalCostData);
+                                                fragment.append(row);
+                                            });
+                
+                                            let secondFragment = document.createDocumentFragment();
+                
+                                            parsedData.taxDetails.forEach(taxDetail => {
+                                                let emptyData = document.createElement('td');
+                                                let row = document.createElement('tr');
+                                                $(row).attr('class', 'removable');
+                
+                                                let taxName = document.createElement('th');
+                                                taxName.setAttribute('colspan', '2');
+                                                taxName.innerHTML = taxDetail.details;
+                
+                                                let taxAmount = document.createElement('td');
+                                                taxAmount.setAttribute('class', 'table-money');
+                                                taxAmount.innerHTML = taxDetail.amount;
+                
+                                                row.append(emptyData, taxName, taxAmount);
+                                                secondFragment.append(row);
+                
+                                            });
+                
+                
+                                            let mainTableBody = document.getElementById('main-table');
+                                            console.log(mainTableBody);
+                
+                                            mainTableBody.insertBefore(fragment, (mainTableBody.rows)[0]);
+                
+                                            mainTableBody.insertBefore(secondFragment, (mainTableBody.rows)[mainTableBody.rows.length - 2]);
+                
+                                            document.getElementById('subtotal').innerHTML = parsedData.subtotal;
+                
+                                            document.getElementById('total-tax').innerHTML = parsedData.totalTax;
+                                            document.getElementById('total-amount').innerHTML = parsedData.totalAmount;
+                
+                                            let thirdFragment = document.createDocumentFragment();
+                                            let count = 0;
+                
+                                            parsedData.containerDetails.forEach(containerDetail => {
+                                                let row = document.createElement('tr');
+                                                $(row).attr('class', 'removable');
+                
+                                                let number = document.createElement('td');
+                                                number.innerHTML = ++count;
+                
+                                                let containerNumber = document.createElement('td');
+                                                containerNumber.innerHTML = containerDetail.number;
+                
+                                                let isoType = document.createElement('td');
+                                                isoType.innerHTML = containerDetail.code;
+                
+                                                let containerType = document.createElement('td');
+                                                containerType.innerHTML = containerDetail.containerType;
+                
+                                                let goodDescription = document.createElement('td');
+                                                goodDescription.innerHTML = containerDetail.goods;
+                
+                                                row.append(number, containerNumber, isoType, containerType, goodDescription);
+                                                thirdFragment.append(row);
+                                            });
+                
+                                            document.getElementById('container-list').append(thirdFragment);
+                
+                                            midInfo.style.position = 'absolute';
+                                            $('#error_label').remove();
+                                            $('#profile-left').removeClass('active');
+                                            $('#profile-left').removeClass('show');
+                                            $('#profiles').removeClass('active');
+                                            $('#profiles').removeAttr('href', '#profile-left');
+                                            $('#preview-left').addClass('active');
+                                            $('#preview-left').addClass('show');
+                                            $('#preview-link').addClass('active');
+                                            $('#preview-link').attr('href', '#preview-left');
                                         }
                                     },
                                     error: function () {
@@ -6014,8 +6655,6 @@ var Invoicing = {
                                         $('#manualAlert').text('Something Went Wrong');
                                     }
                                 });
-
-
 
                                 return;
                             }
@@ -6444,10 +7083,41 @@ var SupplementaryInvoice = {
                 
                                                 document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
                 
+                                            } else if (parsedData.tradeType == 8) {
+                                                document.getElementById('emp-shipper-td').innerHTML = parsedData.shipper;
+                                                document.getElementById('emp-ship-line-td').innerHTML = parsedData.shippingLine;
+                                                document.getElementById('emp-customer-td').innerHTML = parsedData.customer;
+                                                document.getElementById('emp-main-invoice-td').innerHTML = parsedData.mainInvoice;
+                
+                                                document.getElementById('emp-vessel-td').innerHTML = parsedData.vessel;
+                                                document.getElementById('emp-booking-number-td').innerHTML = parsedData.bNumber;
+                                                document.getElementById('emp-booking-date-td').innerHTML = parsedData.bookingDate;
+                                                document.getElementById('emp-activity-td').innerHTML = parsedData.voyageNumber;
+                
+                                                document.getElementById('emp-containers-td').innerHTML = parsedData.containers;
+                
                                             }
                 
-                                            let midInfo = parsedData.tradeType == 1 ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
-                                            console.log(document.querySelector('div.business'));
+                                            let midInfo; // = parsedData.tradeType == 1 ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
+                                            switch (parsedData.tradeType) {
+                                                case 1:
+                                                    midInfo = document.querySelector('.mid-info.import');
+                                                    break;
+                                                    
+                                                case 4:
+                                                    midInfo = document.querySelector('.mid-info.export');
+                                                    break;
+                
+                                                case 8:
+                                                    midInfo = document.querySelector('.mid-info.empty');
+                                                    break;
+                
+                                                default:
+                                                    midInfo = document.querySelector('.mid-info.import');
+                                                    break;
+                
+                                            }
+                                                            console.log(document.querySelector('div.business'));
                 
                                             $(midInfo).css('position', 'static');
                                             let previewLeft = document.getElementById('preview-left');
@@ -6628,6 +7298,9 @@ var SupplementaryInvoice = {
                             if (result.ttyp == 4) {
                                 $('#invoice_link').html('<a href="/api/supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
                             }
+                            if (result.ttyp == 8) {
+                                $('#invoice_link').html('<a href="/api/supp_empty_invoice/show_export/' + result.sinv + '" target="_blank">View Empty Invoice</a>');
+                            }
                         }
 
                         $('#preview-left').removeClass('active');
@@ -6680,8 +7353,7 @@ var Invoice = {
             url:"/api/invoice_status/recall_invoice",
             type:"POST",
             data:{
-                invn: number,
-                prof: 1
+                invn: number
             },
              success: function (data) {
                 var response = $.parseJSON(data);
@@ -6861,20 +7533,6 @@ var Invoice = {
         });
 
         
-        // note_editor.on('preSubmit', function(e, o, action){
-            // if(action !== 'remove'){
-                // var note_id = this.field('note');
-                // if(!note_id.val()){
-                //     note_id.error("EMPTY Field");
-                //     var note = document.querySelector('#note_id');
-                //     note.scrollIntoView();
-                // }
-            // }
-        // });
-        
-
-        // expressEditor.on('preSubmit', function (e, o, action) {
-        //     if (action !== 'remove') {
 
 
         editor = new $.fn.dataTable.Editor({
@@ -6997,17 +7655,20 @@ var Invoice = {
                 type: "POST"
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
-            order: [[ 14, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [15] },{ "searchable": false, "targets": 17 } ],
+            order: [[ 15, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
-                {data: "invoice.cost"},
-                {data: "invoice.tax"},
+                {data: "invoice.cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "invoice.tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "customer.id"},
                 {data: "tax_type.name"},
                 {data: "note", visible:false},
@@ -7190,9 +7851,6 @@ var InvoicePayments = {
                 {   hide: ['payment.bank_name',"payment.bank_cheque_number"]};
         });
 
-
-
-
         paymentEditor.field('payment.receipt_number').hide();
         paymentEditor.field('payment.outstanding').hide();
         paymentEditor.field('payment.user_id').hide();
@@ -7220,8 +7878,10 @@ var InvoicePayments = {
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
-                {data: "invoice.cost"},
-                {data: "invoice.tax"},
+                {data: "invoice.cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "invoice.tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "customer.id"},
                 {data: "tax_type.name"},
                 {data: "invoice.note", visible:false},
@@ -7350,20 +8010,24 @@ var InvoiceDeferrals = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
-            order: [[ 14, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [15] },{ "searchable": false, "targets": 17 } ],
+            order: [[ 15, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
-                {data: "invoice.cost"},
-                {data: "invoice.tax"},
-                {data: "customer.id"},
+                {data: "invoice.cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "invoice.tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "customer.id",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "tax_type.name"},
-                {data: "invoice.note", visible:false},
+                {data: "note", visible:false},
                 {data: "customer.name"},
                 {data: "invoice.approved"},
                 {data: "invoice.user_id", visible:false},
@@ -7490,9 +8154,12 @@ var SupplementaryInvoiceDeferrals = {
                 {data: "dnum", visible:false},
                 {data: "bdate", visible:false},
                 {data: "ddate"},
-                {data: "cost"},
-                {data: "tax"},
-                {data: "cust"},
+                {data: "cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "cust",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "txnam"},
                 {data: "note", visible:false},
                 {data: "name"},
@@ -7682,9 +8349,12 @@ var SupplementaryInvoicePayment = {
                 {data: "dnum", visible:false},
                 {data: "bdate", visible:false},
                 {data: "ddate"},
-                {data: "cost"},
-                {data: "tax"},
-                {data: "cust"},
+                {data: "cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "cust",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "txnam"},
                 {data: "note", visible:false},
                 {data: "name"},
@@ -7892,19 +8562,19 @@ var InvoiceApproval = {
                        header = "Add Note Error";
                        body = "Cannot add empty field";
                        Modaler.dModal(header,body);
-                       TableRfresh.freshTable('invoice');
+                       TableRfresh.freshTable('invoice_approvals');
                    }
                    else if (response.st == 123){
                        header = "Add Note Error";
                        body = "Invoice must be unpaid";
                        Modaler.dModal(header,body);
-                       TableRfresh.freshTable('invoice');
+                       TableRfresh.freshTable('invoice_approvals');
                    }
                        else if(response.st == 260){
                          header = "Add Note Success";
                          body = "Note Added successful";
                          Modaler.dModal(header,body);
-                         TableRfresh.freshTable('invoice');
+                         TableRfresh.freshTable('invoice_approvals');
                      }
                 },
                 error:function () {
@@ -7925,17 +8595,20 @@ var InvoiceApproval = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 15 } ],
-            order: [[ 13, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
+            order: [[ 14, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
-                {data: "invoice.cost"},
-                {data: "invoice.tax"},
+                {data: "invoice.cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "invoice.tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "customer.id"},
                 {data: "tax_type.name"},
                 {data: "note", visible:false},
@@ -7963,7 +8636,7 @@ var InvoiceApproval = {
                             invoice += "<a href='#' onclick='Invoice.addNote(\"" + data.invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
                         }
                         if(data.invn != null){
-                            invoice += "<a href='#' onclick='Invoice.viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
+                            invoice += "<a href='#' onclick='InvoiceApproval.viewNote(" + data.invi + ",\"" + data.invoice.number +"\")' class='depot_cont'>View Note</a><br/>";
                         }
 
                         return invoice;
@@ -8002,8 +8675,10 @@ var InvoiceApproval = {
                     {data: "invoice.do_number", visible:false},
                     {data: "invoice.bill_date"},
                     {data: "invoice.due_date"},
-                    {data: "invoice.cost"},
-                    {data: "invoice.tax"},
+                    {data: "invoice.cost",
+                    render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                    {data: "invoice.tax",
+                    render: $.fn.dataTable.render.number( ',', '.', 2 )},
                     {data: "customer.id"},
                     {data: "tax_type.name"},
                     {data: "invoice.note", visible:false},
@@ -8209,20 +8884,23 @@ var InvoiceWaiver = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 15 } ],
-            order: [[ 13, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
+            order: [[ 14, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
-                {data: "invoice.cost"},
-                {data: "invoice.tax"},
+                {data: "invoice.cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "invoice.tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "customer.id"},
                 {data: "tax_type.name"},
-                {data: "invoice.note", visible:false},
+                {data: "note", visible:false},
                 {data: "customer.name"},
                 {data: "invoice.user_id", visible:false},
                 {data: "invoice.date", visible:false},
@@ -8398,9 +9076,12 @@ var SupplementaryInvoiceWaiver = {
                 {data: "dnum", visible:false},
                 {data: "bdate", visible:false},
                 {data: "ddate"},
-                {data: "cost"},
-                {data: "tax"},
-                {data: "cust"},
+                {data: "cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "cust",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "txnam"},
                 {data: "note", visible:false},
                 {data: "name"},
@@ -8474,7 +9155,7 @@ var SupplementaryInvoiceApproval = {
                     header = "CANCELLATION ERROR";
                     body = "Note not added to invoice for cancellation";
                     Modaler.dModal(header,body)
-                    TableRfresh.freshTable('invoice');
+                    TableRfresh.freshTable('supp_invoice_approvals');
                 }
                 else if (response.st == 121){
                     header = "Deferred Error";
@@ -8608,19 +9289,19 @@ var SupplementaryInvoiceApproval = {
                       header = "Add Note Error";
                       body = "Cannot add empty field";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('supp_invoice');
+                      TableRfresh.freshTable('supp_invoice_approvals');
                   }
                   else if (response.st == 123){
                       header = "Add Note Error";
                       body = "Supplementary Invoice must be paid";
                       Modaler.dModal(header,body);
-                      TableRfresh.freshTable('supp_invoice');
+                      TableRfresh.freshTable('supp_invoice_approvals');
                   }
                   else if(response.st == 260){
                     header = "Add Note Success";
                     body = "Note Added successful";
                     Modaler.dModal(header,body);
-                    TableRfresh.freshTable('supp_invoice');
+                    TableRfresh.freshTable('supp_invoice_approvals');
                 }
                },
                error:function () {
@@ -8649,9 +9330,12 @@ var SupplementaryInvoiceApproval = {
                 {data: "dnum", visible:false},
                 {data: "bdate", visible:false},
                 {data: "ddate"},
-                {data: "cost"},
-                {data: "tax"},
-                {data: "cust"},
+                {data: "cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "cust",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "txnam"},
                 {data: "note", visible:false},
                 {data: "name"},
@@ -8708,11 +9392,12 @@ var Payment = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [3] } ],
+            columnDefs: [ { type: 'date', 'targets': [3] },{ "searchable": false, "targets": 4 } ],
             order: [[ 3, 'desc' ]],
             columns: [
                 {data: "payment.receipt_number"},
-                {data: "payment.paid"},
+                {data: "payment.paid",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "user.first_name", visible:false},
                 {data: "payment.date"},
                 {data: null,
@@ -8811,7 +9496,7 @@ var SuppInvoice = {
                     header = "CANCELLATION ERROR";
                     body = "Note not added to invoice for cancellation";
                     Modaler.dModal(header,body)
-                    TableRfresh.freshTable('invoice');
+                    TableRfresh.freshTable('supp_invoice');
                 }
                 else if (response.st == 121){
                     header = "Deferred Error";
@@ -9151,9 +9836,12 @@ var SuppInvoice = {
                 {data: "dnum", visible:false},
                 {data: "bdate", visible:false},
                 {data: "ddate"},
-                {data: "cost"},
-                {data: "tax"},
-                {data: "cust"},
+                {data: "cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "cust",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "txnam"},
                 {data: "note", visible:false},
                 {data: "name"},
@@ -9511,17 +10199,20 @@ var ProformaInvoice = {
                 type: "POST"
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [12] },{ "searchable": false, "targets": 13 } ],
-            order: [[ 12, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [13] },{ "searchable": false, "targets": 14 } ],
+            order: [[ 13, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "proforma_invoice.number"},
                 {data: "proforma_invoice.bl_number"},
+                {data: "proforma_invoice.book_number", visible:false},
                 {data: "proforma_invoice.do_number", visible:false},
                 {data: "proforma_invoice.bill_date", visible:false},
                 {data: "proforma_invoice.due_date"},
-                {data: "proforma_invoice.cost"},
-                {data: "proforma_invoice.tax"},
+                {data: "proforma_invoice.cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "proforma_invoice.tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "tax_type.name"},
                 {data: "note", visible:false},
                 {data: "customer.name"},
@@ -9706,8 +10397,10 @@ var ProfromaSuppInvoice = {
                 {data: "dnum", visible:false},
                 {data: "bdate", visible:false},
                 {data: "ddate"},
-                {data: "cost"},
-                {data: "tax"},
+                {data: "cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
+                {data: "tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "txnam"},
                 {data: "note", visible:false},
                 {data: "name"},
@@ -9760,7 +10453,8 @@ var SupPayment = {
             order: [[ 3, 'desc' ]],
             columns: [
                 {data: "supplementary_payment.receipt_number"},
-                {data: "supplementary_payment.paid"},
+                {data: "supplementary_payment.paid",
+                render: $.fn.dataTable.render.number( ',', '.', 2 )},
                 {data: "user.first_name", visible:false},
                 {data: "supplementary_payment.date"},
                 {data: null,
@@ -9784,7 +10478,7 @@ var SupPayment = {
     }
 }
 
-var InvoiceReports = {
+var InvoiceReports = {    
     iniTable: function () {
 
         $('#invoice_reports').DataTable({
@@ -9819,9 +10513,78 @@ var InvoiceReports = {
                             var result = $.parseJSON(data);
                             if (result.st == 232) {
 
-                                $( api.column( 8 ).footer() ).html(
-                                    'Total Cost('+result.total +')'
+                                $(api.column(0).footer()).html(
+                                    ''
                                 );
+
+                                $(api.column(1).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(2).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(3).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(4).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(5).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(6).footer()).html(
+                                    'GHS '+ result.total
+                                );
+
+                                $(api.column(7).footer()).html(
+                                    result.wpct+'%'
+                                );
+
+                                $(api.column(8).footer()).html(
+                                    'GHS '+result.wamt
+                                );
+
+                                $(api.column(9).footer()).html(
+                                    ''
+                                );
+
+                                $( api.column( 10 ).footer() ).html(
+                                   ''
+                                );
+
+                                $(api.column(11).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(12).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(13).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(14).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(15).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(16).footer()).html(
+                                    ''
+                                );
+
+                                $(api.column(17).footer()).html(
+                                    ''
+                                );
+
                             }
                         },
                         error:function () {
@@ -11181,6 +11944,10 @@ var GateReport = {
 }
 
 var PaymentReport = {
+    formatMoney: function(number) {
+        return number.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+    },
+
     iniTable: function () {
         $('#payment_report').DataTable( {
             dom: "Bfrtip",
@@ -11196,6 +11963,7 @@ var PaymentReport = {
                 }
             },
             serverSide: true,
+            order: [[ 17, 'desc' ]],
             columns: [
                 { data: "rcpn" },
                 { data: "inv" },
@@ -11207,6 +11975,12 @@ var PaymentReport = {
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "tax",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "vat",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
+                { data: "getF",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
+                { data: "nhil",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ),visible:false },
                 { data: "paid",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "bank", visible:false},
@@ -11233,20 +12007,65 @@ var PaymentReport = {
                     success:function (data) {
                         var result = $.parseJSON(data);
                         if (result.st == 230) {
+
                             $(api.column(0).footer()).html(
-                                'Total Paid: GHS ' + result.tpay
+                                ''
+                            );
+
+                            $(api.column(1).footer()).html(
+                                ''
                             );
 
                             $(api.column(2).footer()).html(
-                                'VAT: GHS ' + result.vat
+                               ''
                             );
 
+                            $(api.column(3).footer()).html(
+                                'GHS ' + result.cost
+                            );
+
+                            $(api.column(4).footer()).html(
+                               result.wpct+'%'
+                             );
+
                             $(api.column(5).footer()).html(
-                                'NHIL: GHS ' + result.nhil
+                                'GHS '+ result.wamt
+                            ); 
+
+                            $(api.column(6).footer()).html(
+                                'GHS ' + result.tax
+                            ); 
+
+                            $(api.column(7).footer()).html(
+                                'GHS ' + result.vat
                             );
 
                             $(api.column(8).footer()).html(
-                                'GET Fund: GHS ' + result.getf
+                                'GHS ' + result.getf
+                            );
+
+                            $(api.column(9).footer()).html(
+                                'GHS ' + result.nhil
+                            );
+
+                            $(api.column(10).footer()).html(
+                                'GHS ' + result.tpay
+                            );
+
+                            $(api.column(11).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(12).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(13).footer()).html(
+                                ''
+                            );
+
+                            $(api.column(14).footer()).html(
+                                ''
                             );
                         }
                     },
@@ -11359,7 +12178,6 @@ var SummaryRemittance = {
     formatMoney: function(number) {
         return number.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
     },
-    
 
     iniTable: function () {
         $('#summary_remittance').DataTable( {
@@ -12752,7 +13570,7 @@ var ContainerHistory={
 
         $('#container_history').DataTable({
             dom: "Bfrtip",
-            pageLength: 10,
+            pageLength: 5,
             ajax: {
                 url:"/api/container_history/view_history",
                 type:"POST",
@@ -12761,6 +13579,7 @@ var ContainerHistory={
                 }
             },
             serverSide: true,
+            order: [[ 4, 'desc' ]],
             columns: [
                 {data: "id"},
                 {data: "act"},
@@ -12797,11 +13616,13 @@ var ContainerHistory={
             },
             serverSide: true,
             columnDefs: [
-                { "searchable": false, "targets": 4 }
+                { "searchable": false, "targets": 6 }
             ],
             columns: [
                 {data: "id"},
                 {data: "num"},
+                {data: "blnum"},
+                {data: "bknum"},
                 {data: "trty"},
                 {data: "len"},
                 {data: "gtin"},
