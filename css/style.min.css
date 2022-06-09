@@ -395,7 +395,7 @@
     margin-top: 8px;
 }
 
-div.mid-info {
+div.mid-info, div.move-title, div.move-form {
     position: absolute;
     /* top: -500px; */
     left: -2000px;
