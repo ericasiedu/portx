@@ -13851,12 +13851,14 @@ var EmptyBooking = {
                 type:"POST"
             },
             serverSide: true,
+            order: [[ 5, 'desc' ]],
             columns: [
                 {data: "booking.shipping_line_id"},
                 {data: "booking.customer_id"},
                 {data: "booking.size"},
                 {data: "booking.quantity"},
                 {data: "booking.booking_number"},
+                { data: "booking.date", visible:false },
                 // {data: "container", render: "[, ].number"}
            ],
             select: true,
@@ -14374,12 +14376,14 @@ var Booking = {
                 type:"POST"
             },
             serverSide: true,
+            order: [[ 5, 'desc' ]],
             columns: [
                 {data: "booking.shipping_line_id"},
                 {data: "booking.customer_id"},
                 {data: "booking.size"},
                 {data: "booking.quantity"},
                 {data: "booking.booking_number"},
+                { data: "booking.date", visible:false },
                 {data: "container", render: "[, ].number"}
            ],
             select: true,
