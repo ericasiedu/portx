@@ -7869,12 +7869,13 @@ var InvoicePayments = {
                 }
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [14] },{ "searchable": false, "targets": 16 } ],
-            order: [[ 14, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [15] },{ "searchable": false, "targets": 17 } ],
+            order: [[ 15, 'desc' ]],
             columns: [
                 {data: "trade_type.name", visible:false},
                 {data: "invoice.number"},
                 {data: "invoice.bl_number"},
+                {data: "invoice.book_number", visible:false},
                 {data: "invoice.do_number", visible:false},
                 {data: "invoice.bill_date", visible:false},
                 {data: "invoice.due_date"},
