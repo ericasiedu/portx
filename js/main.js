@@ -14413,8 +14413,10 @@ var MoveToExport = {
         form.css('position', 'static');
         let newForm = form.clone();
         let $shownInput = newForm.find('input');
+        let $shownTextArea = newForm.find('textarea');
         let $shownButton = newForm.find('button');
         $shownInput.attr('id', 'move-input');
+        $shownTextArea.attr('id', 'move-text');
         $shownButton.attr('id', 'move-button');
         $('#move-input').focus();
         EventModal.dModal('Export Booking Number', newForm, 'sm', /* 'move-modal' */);
@@ -14451,7 +14453,7 @@ var MoveToExport = {
         })
     },
 
-    moveCall: function (id, booking) {
+    moveCall: function (id, booking, content) {
         let request = new XMLHttpRequest();
         url = '/api/move_to_export/move';
         request.open("POST", url);
@@ -14467,16 +14469,17 @@ var MoveToExport = {
                 alert('Something went wrong');
             }
         };
-        request.send(`id=${id}&booking=${booking}`);
+        request.send(`id=${id}&booking=${booking}&content=${content}`);
     },
 
     addBooking: function(id) {
         console.log(id.data);
         console.log($('#move-input').val());
+        console.log($('#move-text').val());
         if ($('#move-input').val() == '') {
             return;
         }
-        MoveToExport.moveCall(id.data, $('#move-input').val());
+        MoveToExport.moveCall(id.data, $('#move-input').val(), $('#move-text').val());
     },
 
     cancel: function(id) {
@@ -14561,7 +14564,6 @@ var MoveToExport = {
             buttons: [
                 { extend: "colvis", className:"btn btn-primary"},
             ]
-            // buttons: Helpers.permissionButtonBuilder(editor,'Port')
         });
     }
 
