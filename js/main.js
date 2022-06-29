@@ -1003,6 +1003,13 @@ var GateIn = {
                 $('#code').prop('disabled',true);
                 $('#trade_select').prop('disabled',true);
 
+                if ($('#trade_select').val() == 70) {
+                    $('#imdgID').hide();
+                }
+                else{
+                    $('#imdgID').show();
+                }
+
             },
             error: function () {
                 $('#myModalLabel').text('ERROR');
@@ -1131,6 +1138,7 @@ var GateIn = {
                 options: [
                     {label: "IMPORT", value: 11},
                     {label: "EXPORT", value: 21},
+                    {label: "EMPTY", value: 70},
                     {label: "TRANSIT", value: 13},
                 ],
             }, {
@@ -1636,7 +1644,7 @@ var GateIn = {
         expressEditor.field('gate_record.type').hide();
         expressEditor.field('gate_record.user_id').hide();
 
-// <<<<<<< HEAD
+
         emptyEditor = new $.fn.dataTable.Editor({
             ajax: "/api/gate_in/table",
             table: "#gate_in",
@@ -1659,15 +1667,7 @@ var GateIn = {
                     id: 'emptyID',
                     class: "form-control"
                 }
-            }, /* {
-                label: "Booking Number.",
-                name: "book_number",
-                attr: {
-                    class: "form-control",
-                    id: "book_numberID",
-                    maxlength: 20,
-                }
-            }, */
+            }, 
                 {
                     label: "Agency",
                     name: "agent",
@@ -1678,15 +1678,7 @@ var GateIn = {
                         maxlength: 150
                     }
                 },
-                /* {
-                    label: "Content of Goods",
-                    name: "goods_content",
-                    type: "textarea",
-                    attr: {
-                        class: "form-control",
-                        id: "goodsID"
-                    }
-                }, */ {
+                 {
                     label: "Type:",
                     name: "gate_record.type",
                     def: 1
@@ -1735,15 +1727,7 @@ var GateIn = {
                         class: "form-control",
                         list: "iso_code"
                     }
-                }, /* {
-                    label: "IMDG:",
-                    name: "imdg",
-                    attr: {
-                        id: "imdg",
-                        class: "form-control",
-                        list: "imdgs"
-                    },
-                }, */ {
+                }, {
                     label: "Full Status:",
                     name: "full_status",
                     type: "select",
@@ -1796,8 +1780,7 @@ var GateIn = {
                     options: [
                         {label: "Positioning", value: "Positioning"},
                         {label: "Drop-off", value: "Drop-off"}
-                    ],
-                    // def: 0
+                    ]
                 }, {
                     label: "Special Seal:",
                     name: "gate_record.special_seal",
@@ -1840,16 +1823,7 @@ var GateIn = {
                         class: "form-control",
                         maxlength: 255
                     }
-                }, /* {
-                    label: "External Reference:",
-                    name: "gate_record.external_reference",
-                    fieldInfo: "Use Gate In Condition screen for damage details",
-                    attr: {
-                        id: "external_ref",
-                        class: "form-control",
-                        maxlength: 50
-                    }
-                }, */ {
+                }, {
                     label: "Condition:",
                     name: "gate_record.cond",
                     type: "select",
@@ -1907,14 +1881,14 @@ var GateIn = {
         emptyEditor.field('gate_record.type').hide();
         emptyEditor.field('gate_record.user_id').hide();
 
-// =======
+
         editor.on('initEdit', function() {
             if(editor.field('trade').val() == 21){
                 editor.field('trade').enable();
             }
         });
 
-// >>>>>>> master
+
         var container_check = false;
 
         expressEditor.on('preSubmit', function (e, o, action) {
@@ -2013,15 +1987,11 @@ var GateIn = {
             }
         });
 
-        // emptyEditor.on('preSubmit', function (e, o, action) {
         emptyEditor.on('initSubmit', function (e, o, action) {
             if (action !== 'remove') {
-                // var content = this.field('goods_content');
-                // var book_number = this.field('book_number');
                 var agent = this.field('agent');
                 var seal_no1 = this.field('seal_number_1');
                 var seal_no2 = this.field('seal_number_2');
-                // var imdg = this.field('imdg');
                 var consignee = this.field('gate_record.consignee');
                 var regex = new RegExp("[a-z A-Z 0-9 -]+$");
                 var container_no = this.field('gate_record.container_id');
@@ -2066,11 +2036,7 @@ var GateIn = {
                     var seal_number2 = document.querySelector('#seal_number2');
                     seal_number2.scrollIntoView();
                 }
-                /* if (!imdg.val()) {
-                    imdg.error("Empty field");
-                    var imdgs = document.querySelector('#imdg');
-                    imdgs.scrollIntoView();
-                } */
+             
                 if (!iso.val()) {
                     iso.error('Empty field');
                     var iso_code = document.querySelector('#iso_code');
@@ -2081,26 +2047,13 @@ var GateIn = {
                     var shipping_line_id = document.querySelector('#shippingLineID');
                     shipping_line_id.scrollIntoView();
                 }
-                /* if (!content.val()) {
-                    content.error("Empty field");
-                    var contents = document.querySelector('#goodsID');
-                    contents.scrollIntoView();
-                } */
+             
                 if (!agent.val()) {
                     agent.error("Empty field");
                     var agentID = document.querySelector('#agentID');
                     agentID.scrollIntoView();
                 }
-                /* if (!book_number.val()) {
-                    book_number.error("Empty field");
-                    var book_numberID = document.querySelector('#book_numberID');
-                    book_numberID.scrollIntoView();
-                }
-                else if (!regex.test(book_number.val())) {
-                    book_number.error("Booking Number must not contain symbols.");
-                    var book_numberID1 = document.querySelector('#book_numberID');
-                    book_numberID1.scrollIntoView();
-                } */
+          
                 if (container_no.error() || container_number_error) {
                     if (container_no.val().trim() == '') {
                         container_no.error('Empty field');
@@ -2108,7 +2061,7 @@ var GateIn = {
                     var empty = document.querySelector('#emptyID');
                     empty.scrollIntoView();
                 }
-                // if (this.inError() || !container_check) {
+             
                 if (this.inError()) {
                     return false;
                 }
@@ -2134,7 +2087,7 @@ var GateIn = {
 
             var error_check = false;
 
-            if (action === 'edit' && trade_type == 21) {
+            if (action === 'edit' && (trade_type == 21 || trade_type == 70)) {
                 var table = $('#gate_in').DataTable();
                 var rowData = table.row({selected: true}).data();
                 var container_number = rowData['gate_record']['container_id'];
@@ -2165,8 +2118,9 @@ var GateIn = {
                         shid: shipping_line.val(),
                         oog: oog_status.val(),
                         rctno: number,
-                        bkno: book_number.val(),
-                        gid: gate_record
+                        bkno: book_number.val() !='' ? book_number.val() : '',
+                        gid: gate_record,
+                        trad: trade_type
                     },
                     success: function(data){
                         var data = JSON.parse(data);
