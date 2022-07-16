@@ -2403,7 +2403,6 @@ var GateIn = {
             return false;
         });
 
-        // emptyEditor.on('initSubmit', function (e, o, action) {
         emptyEditor.on('preSubmit', function (e, o, action) {
             container_number_error = false;
             var trade_type = this.field('trade');
@@ -2554,7 +2553,6 @@ var GateIn = {
                             type: "POST",
                             async: false,
                             data: {
-                                // trty: trade_type.val(),
                                 ctno: container_no.val(),
                                 activity: activity_type.val(),
                             },
@@ -2577,7 +2575,6 @@ var GateIn = {
                 }
             });
 
-            // return false;
         });
 
         add_gatein_condition = new $.fn.dataTable.Editor({
@@ -13788,14 +13785,6 @@ var EmptyBooking = {
                         class: "form-control"
                     }
                 },
-                /* {
-                    label: "Add Containers from Empty:",
-                    name: "container[].id",
-                    type: "checkbox",
-                    attr: {
-                        class: "form-control"
-                    },
-                }, */
             ]
         });
 
@@ -13814,7 +13803,6 @@ var EmptyBooking = {
                 {data: "booking.quantity"},
                 {data: "booking.booking_number"},
                 { data: "booking.date", visible:false },
-                // {data: "container", render: "[, ].number"}
            ],
             select: true,
             buttons: Helpers.permissionButtonBuilder(editor,'Booking')
@@ -13833,14 +13821,8 @@ var Booking = {
         request.onload = function() {
             if (request.status == 200) {
                 let response = JSON.parse(request.responseText);
-                // console.log(response);
                 data = response;
             }
-            /* if (this.status >= 200 && this.status < 300) {
-                resolve(JSON.parse(this.responseText));
-            } else {
-                reject(`${this.status}: ${this.statusText}`);
-            } */
         };
         request.send(`line=${line}&size=${size}&booking=${booking}`);
 
@@ -13849,12 +13831,10 @@ var Booking = {
     },
 
     populateDatalist: function (containers) {
-        // localStorage.${container[1]} = containers[0];
         let datalist = document.getElementById('containers');
         datalist.innerHTML = "";
         let listFragment = document.createDocumentFragment();
         containers.forEach(container => {
-            // Reflect.set(localStorage, container[1], container[0]);
             localStorage[container[1]] = container[0];
 
             let option = document.createElement('option');
@@ -13917,7 +13897,6 @@ var Booking = {
         request.onload = function() {
             if (request.status == 200) {
                 let response = JSON.parse(request.responseText);
-                // console.log(response);
 
                 let booking = values['booking.booking_number'];
                 if (action == 'edit') {
@@ -13983,7 +13962,6 @@ var Booking = {
     },
 
     getDeleteIds: function (event, values) {
-        // let containers = event.target.s.editFields[values[0]].data.container;
 
         let ids = [];
 
@@ -14102,12 +14080,9 @@ var Booking = {
 
         editor.on('initEdit', function (event, data, values, row) {
             // do ajax to fetch and populate empty containers datalist
-            // console.log(editor.field('container[].id').input());
-            // console.log(document.querySelectorAll('input'));
             let containers = Booking.getEmptyList(values.booking.shipping_line_id, 
                 values.booking.size, values.booking.booking_number);
             Booking.populateDatalist(containers.empty);
-            // console.log(containers.row);
 
             let options = [];
             containers.row.forEach(container => {
@@ -14118,18 +14093,14 @@ var Booking = {
                 options.push(option);
             });
 
-            // option.value = 100;
-            // option.label = 'TESTCONTAINER';
             editor.field('container[].id').update(options);
 
             let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
             let $editorChecks = $editorCheck.find("input[type='checkbox']");
 
             let checkArray = Array.from($editorChecks);
-            // console.log(checkArray);
 
             checkArray.forEach(check => {
-                // console.log(check);
                 check.checked = true;
                 Booking.assignEvent(check);
             });
@@ -14137,48 +14108,18 @@ var Booking = {
 
         editor.on('open', function(event, data, values, row) {
             editor.field('booking.container').focus();
-            // console.log(editor.modifier().row());
-            // console.log(data);
-            // console.log(values);
-            // console.log(row);
-            // let option = {};
-            // option.value = 100;
-            // option.label = 'TESTCONTAINER';
-            // editor.field('container[].id').update([option]);
-            // editor.field('container[].id').update([], true);
-            // this.value = '';
-
-            // let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
-            // let $editorChecks = $editorCheck.find("input[type='checkbox']");
-            // console.log($editorCheck);
-            // console.log($editorChecks);
-
-            // let checkArray = Array.from($editorChecks);
-
-            // Booking.checkBoxes(val, checkArray);
-            // checkArray[checkArray.length - 1].checked = true;
-
-            // checkArray.forEach(check => {
-            //     // console.log(check);
-            //     Booking.assignEvent(check);
-            // });
         });
 
         editor.field('booking.container').input().on('focus', function (e) {
-            // editor.field('container[].id').update([{label: "DUMMY", value: 1}], true);
             let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
             let $editorChecks = $editorCheck.find("input[type='checkbox']");
-            // console.log($editorChecks);
-            // console.log('focused');
         })
 
         editor.field('booking.container').input().on('keyup', function (e, d) {
             e.preventDefault();
-            // console.log(e.originalEvent.key);
             if (e.originalEvent.key == ' ') {
                 let number = this.value.trim();
                 let id = localStorage[number];
-                // console.log(id);
                 if (typeof id == "undefined")
                     return;
 
@@ -14193,8 +14134,6 @@ var Booking = {
     
                 let checkArray = Array.from($editorChecks);
     
-                // Booking.checkBoxes(val, checkArray);
-                // console.log($editorCheck.find('input'));
                 checkArray[checkArray.length - 1].checked = true;
 
                 Booking.assignEvent(checkArray[checkArray.length - 1]);
@@ -14202,60 +14141,12 @@ var Booking = {
             }
         });
 
-        // editor.dependent('booking.shipping_line_id', function (val, data, callback) {
-        //     if (val == '')
-        //         callback({});
-
-        //     let values = data.values;
-        //     // let size =  values['booking.size'];
-        //     let action = editor.s.action;
-
-        //     Booking.doAjaxRequest(val, values, action, editor, callback);
-        // }, 'keyup');
-
-        // editor.dependent('booking.size', function (val, data, callback) {
-        //     if (data.values['booking.shipping_line_id'] == '')
-        //         callback({});
-
-        //     let values = data.values;
-        //     let action =  editor.s.action;
-
-        //     Booking.doAjaxRequest(val, values, action, editor, callback);
-        // });
-
-        // editor.dependent('booking.quantity', function (val, data, callback) {
-        //     let $editorCheck = $(editor.field('container[].id').dom.container[0].childNodes[1]);
-        //     let $editorChecks = $editorCheck.find("input[type='checkbox']");
-
-        //     let checkArray = Array.from($editorChecks);
-
-        //     Booking.checkBoxes(val, checkArray);
-        //     // console.log(editor.field('container[].id').input());
-
-        //     callback({});
-        // });
-
         editor.on('remove', function (event, data, values, row) {
-            // let quantity = editor.field('booking.quantity');
-            // let quantityVal = quantity.val();
-            // let containers = this.field('container[].id');
-            // let containersVal = containers.val();
 
             let info = values;
-            console.log(event);
-            console.log(data);
-            console.log(values);
-            console.log(row);
-            // let containers = event.target.s.editFields[values[0]].data.container;
-            // console.log(containers);
 
             let ids = Booking.getDeleteIds(event, values);
 
-            // containers.forEach(container => {
-            //     console.log(container);
-            //     ids.push(container.id);
-            // });
-            console.log(ids);
 
             let request = new XMLHttpRequest();
             let url = '/api/booking/unbook_containers';
@@ -14274,19 +14165,11 @@ var Booking = {
         });
 
         editor.on('preEdit', function (event, data, values, row) {
-            console.log(event.target.s.editData['container[].id']);
-            // console.log(data.data.container[0].id);
             let booking = this.field('booking.booking_number').val();
             let containerIds = this.field('container[].id').val();
-            // let numbers = data.childNodes[4].innerText;
             let containers = Array.from(data.data[0].container);
             let ids = event.target.s.editData['container[].id'][row];
 
-            // containers.forEach(container => {
-            //     console.log(container);
-            //     ids.push(container.id);
-            // })
-            console.log(ids);
 
             let request = new XMLHttpRequest();
             let url = '/api/booking/assign_edit_bookings';
@@ -14294,7 +14177,6 @@ var Booking = {
             request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             request.onload = function() {
                 if (request.status == 200) {
-                    // let response = JSON.parse(request.responseText);
 
                     console.log('Bookings assigned');
                 } else {
@@ -14304,25 +14186,6 @@ var Booking = {
 
             request.send(`booking=${booking}&ids=${containerIds}&rowids=${ids}`);
         });
-
-        // editor.on('preCreate', function (e, o, action) {
-        //     let booking = this.field('booking.booking_number').val();
-        //     let containerIds = this.field('container[].id').val();
-
-        //     let request = new XMLHttpRequest();
-        //     let url = '/api/booking/assign_bookings';
-        //     request.open("POST", url, true);
-        //     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        //     request.onload = function() {
-        //         if (request.status == 200) {
-        //             let response = JSON.parse(request.responseText);
-
-        //             console.log(response);
-        //         }
-        //     };
-
-        //     request.send(`booking=${booking}&ids=${containerIds}`);
-        // });
 
         $("#booking").DataTable({
             dom: "Bfrtip",
@@ -14354,7 +14217,6 @@ var Booking = {
                 return buttons;
         
             }()),
-            // buttons: Helpers.permissionButtonBuilder(editor,'Booking')
         });
     }
 }
@@ -14373,16 +14235,12 @@ var MoveToExport = {
         $shownTextArea.attr('id', 'move-text');
         $shownButton.attr('id', 'move-button');
         $('#move-input').focus();
-        EventModal.dModal('Export Booking Number', newForm, 'sm', /* 'move-modal' */);
+        EventModal.dModal('Export Booking Number', newForm, 'sm');
 
         var modalBody = document.querySelector('div.modal-body');
-        modalBody.addEventListener('DOMNodeInserted', function (e) {
-            console.log('inserted');
-        }, false);
-        console.log(modalBody);
         form.css('position', 'absolute');
 
-        $shownButton.on('click', '', /* {id: id} */id, MoveToExport.addBooking);
+        $shownButton.on('click', '', id, MoveToExport.addBooking);
         $shownInput.on('keypress', function (event) {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -14427,9 +14285,6 @@ var MoveToExport = {
     },
 
     addBooking: function(id) {
-        console.log(id.data);
-        console.log($('#move-input').val());
-        console.log($('#move-text').val());
         if ($('#move-input').val() == '') {
             return;
         }
@@ -14504,7 +14359,6 @@ var MoveToExport = {
 
                         if (data.moved_to == null) {
                             emptyAction += "<a href='#' onclick='MoveToExport.move(" + data.id +")' class='check_cond'>Move</a><br/>";
-                            // gated_record += '<a id="check_cond" class="display_box" href="#" onclick="GateIn.conditionAlert(' + data.id + ',' + '\'' + data.ctnum + '\'' + ')">Check Condition</a><br/>';
 
                         } else {
                             emptyAction += "<a href='#' onclick='MoveToExport.cancel(" + data.moved_to +")' class='check_cond'>Cancel</a><br/>";
