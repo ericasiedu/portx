@@ -1096,7 +1096,8 @@ var GateIn = {
                     GateIn.fieldChecked(checked);
                 }
                 else{
-                    if ($('#trade_select').val() == 21) {
+                    var trade_type = $('#trade_select').val();
+                    if (trade_type == 21 || trade_type == 70) {
                         $('#consignee').show();
                         $('#container').prop('disabled',false);
                         var checked = false;
@@ -2201,7 +2202,7 @@ var GateIn = {
                                 container.scrollIntoView();
                             }
                             if (data.err.trter) {
-                                container_no.error("Container is not EXPORT trade type");
+                                container_no.error("Container is jhjnot EXPORT trade type");
                                 var container = document.querySelector('#container');
                                 container.scrollIntoView();
                             }
