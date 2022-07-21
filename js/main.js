@@ -2202,7 +2202,7 @@ var GateIn = {
                                 container.scrollIntoView();
                             }
                             if (data.err.trter) {
-                                container_no.error("Container is jhjnot EXPORT trade type");
+                                container_no.error("Container is not EXPORT trade type");
                                 var container = document.querySelector('#container');
                                 container.scrollIntoView();
                             }
@@ -5900,6 +5900,7 @@ var Invoicing = {
         var ucl_check = false;
 
         $('#preview_button').on('click',function (e) {
+            $('#preview_button').attr("disabled", true);
             var datePattern = new RegExp("\\d{4}-\\d{2}-\\d{2}");
             var customer = $('#customer_id').val();
 
@@ -6229,7 +6230,7 @@ var Invoicing = {
 
         $('#invoice_button').on('click',function (e) {
 
-            // alert(ucl_check);
+            $('#invoice_button').attr("disabled", true);
 
             var datePattern = new RegExp("\\d{4}-\\d{2}-\\d{2}");
             var customer = $('#customer_id').val();
@@ -6355,6 +6356,7 @@ var Invoicing = {
 
         $('#container-invoice').on('click',function (e) {
             e.preventDefault();
+            $('#container-invoice').attr("disabled", true);
 
             selectedContainers = [];
             checkCurrency = document.getElementById('currency').value;
