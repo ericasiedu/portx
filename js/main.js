@@ -8004,6 +8004,10 @@ var InvoiceDeferrals = {
                             invoice += '<a class="view_act" href="/api/export_invoice/show_export/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         invoice += "<a href='#' onclick='InvoiceDeferrals.deferInvoice(\"" + data.invoice.number + "\")'>Defer</a>";
 
 
@@ -8136,6 +8140,10 @@ var SupplementaryInvoiceDeferrals = {
 
                         if (data.ttyp == 'EXPORT') {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/supp_empty_invoice/show_empty/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         invoice += "<a href='#' onclick='SupplementaryInvoiceDeferrals.deferInvoice(\"" + data.spnum + "\")'>Defer</a>";
@@ -8591,6 +8599,10 @@ var InvoiceApproval = {
                             invoice += '<a class="view_act" href="/api/export_invoice/show_export/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         if (data.invoice.status == 'UNPAID' || data.invoice.status == 'DEFERRED' || data.invoice.status == 'RECALLED') {
 
                             invoice += "<a href='#' onclick='InvoiceApproval.approveInvoice(\"" + data.invoice.number + "\")' class='depot_cont'>Approve</a><br/>";
@@ -8880,6 +8892,10 @@ var InvoiceWaiver = {
                             invoice += '<a class="view_act" href="/api/export_invoice/show_export/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         invoice += "<a href='#' onclick='InvoiceWaiver.addWaiver(\"" + data.invoice.number + "\", \""+ data.currency.code +"\", "+ data.invoice.cost + ")' class='depot_cont'>Add Waiver</a><br/>";
 
                         return invoice;
@@ -9062,6 +9078,10 @@ var SupplementaryInvoiceWaiver = {
 
                         if (data.ttyp == 'EXPORT') {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/supp_empty_invoice/show_empty/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         invoice += "<a href='#' onclick='SupplementaryInvoiceWaiver.addWaiver(\"" + data.spnum + "\", \""+ data.code +"\", "+ data.cost + ")' class='depot_cont'>Add Waiver</a><br/>";
@@ -9315,6 +9335,10 @@ var SupplementaryInvoiceApproval = {
 
                         if (data.ttyp == 'EXPORT') {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/supp_empty_invoice/show_empty/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         if (data.stat == 'UNPAID' || data.stat == 'DEFERRED' || data.stat == 'RECALLED'){
@@ -9825,6 +9849,10 @@ var SuppInvoice = {
 
                         if (data.ttyp == 'EXPORT') {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/supp_empty_invoice/show_empty/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         if (data.stat == 'UNPAID' || data.stat == 'DEFERRED'){
