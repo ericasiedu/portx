@@ -10224,6 +10224,10 @@ var ProformaInvoice = {
                             invoice += '<a class="view_act" href="/api/proforma_export_invoice/show_export/' + data.proforma_invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'EMPTY') {
+                            invoice += '<a class="view_act" href="/api/proforma_empty_invoice/show_empty/' + data.proforma_invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         if (data.proforma_invoice.status == 'UNPAID'  || data.proforma_invoice.status == 'DEFERRED'){
                             invoice += "<a href='#' onclick='ProformaInvoice.cancelInvoice(\"" + data.proforma_invoice.number + "\")' class='depot_cont'>Cancel</a><br/>";
                             invoice += "<a href='#' onclick='ProformaInvoice.addNote(\"" + data.proforma_invoice.number + "\")' class='depot_cont'>Add Note</a><br/>";
