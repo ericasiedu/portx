@@ -2971,6 +2971,37 @@ var GateOut= {
         }
     },
 
+    getAct: function (number) {
+        var act = document.getElementById('act');
+        // driver_list.innerHTML = '';
+        // var vehicle_list = document.getElementById('vehicle_out');
+        // vehicle_list.innerHTML = '';
+
+        var container = $('#container').val();
+        if (container == undefined)
+            container = number;
+        if (container) {
+            $.ajax({
+                type: 'POST',
+                url: '/api/gate_out/getAct',
+                data: {num: container},
+                success: function (data) {
+                    var result = $.parseJSON(data);
+                    var actData = result.act;
+                    // var vehicles = result.veh;
+
+                    if (actData != undefined ) {
+                        act.value = actData;
+                    }
+
+                },
+                error: function () {
+                    alert('Could not get ACT for container.');
+                }
+            });
+        }
+    },
+
     iniTable: function () {
         editor = new $.fn.dataTable.Editor( {
             ajax: "/api/gate_out/table",
@@ -2982,9 +3013,9 @@ var GateOut= {
                 attr: {
                     class: "form-control",
                     list:"container_out",
-                    onselect:"GateOut.getDrivers()",
-                    onkeyup: "GateOut.getDrivers()",
-                    onchange:"GateOut.getDrivers()",
+                    onselect:"GateOut.getDrivers();GateOut.getAct()",
+                    onkeyup: "GateOut.getDrivers();GateOut.getAct()",
+                    onchange:"GateOut.getDrivers();GateOut.getAct()",
                     maxlength: 11,
                     id: "container"
                 }
@@ -3039,6 +3070,21 @@ var GateOut= {
                         class: "form-control"
                     }
                 },{
+                    label:"ACT:",
+                    name:"booking.act",
+                    type:"select",
+                    options:[
+                        {label:"Evacuation to Port", value:"Evacuation to Port"},
+                        {label:"Evacuation to Depot", value:"Evacuation to Depot"},
+                        {label:"Pickup (EXP)'", value:"Pickup (EXP)'"},
+                        {label:"N/A", value:"N/A"},
+                    ],
+                    attr:{
+                        class:"form-control",
+                        disabled: true,
+                        id: "act",
+                    }
+                },{
                     label:"Condition:",
                     name:"gate_record.cond",
                     type:"select",
@@ -3064,6 +3110,12 @@ var GateOut= {
 
         editor.on('open', function() {
             GateOut.getDrivers();
+        });
+
+        editor.dependent("gate_record.depot_id", function(val) {
+        // editor.dependent("trade_type.name", function(val) {
+            return val == 2 ? { show: "booking.act" } : { hide: "booking.act" };
+            // console.log(val);
         });
 
         editor.field('gate_record.type').hide();
@@ -3200,6 +3252,7 @@ var GateOut= {
                 { data: "seal2", visible:false},
                 { data: "spsl", visible:false},
                 { data:"good",visible:false},
+                { data: "booking.act"},
                 { data: "gate_record.cond"},
                 {data: "note",visible:false},
                 { data:  null,
@@ -13119,7 +13172,7 @@ var Bank = {
                 { data: "name" },
             ],
             select: true,
-                buttons: [
+            buttons: [
                 { extend: "colvis", className:"btn btn-primary"},
                 { extend: "create", editor: editor, className:"btn btn-primary" },
                 { extend: "edit", editor: editor, className:"btn btn-primary" }
@@ -13827,6 +13880,15 @@ var EmptyBooking = {
                     }
                 },
                 {
+                    label: "ACT:",
+                    name: "booking.act",
+                    type: "select",
+                    def: "N/A",
+                    attr: {
+                        class: "form-control"
+                    }
+                },
+                {
                     label: "Booking Number:",
                     name: "booking.booking_number",
                     attr: {
@@ -13843,15 +13905,16 @@ var EmptyBooking = {
                 type:"POST"
             },
             serverSide: true,
-            order: [[ 5, 'desc' ]],
+            order: [[ 6, 'desc' ]],
             columns: [
                 {data: "booking.shipping_line_id"},
                 {data: "booking.customer_id"},
                 {data: "booking.size"},
                 {data: "booking.quantity"},
+                {data: "booking.act"},
                 {data: "booking.booking_number"},
                 { data: "booking.date", visible:false },
-           ],
+            ],
             select: true,
             buttons: Helpers.permissionButtonBuilder(editor,'Booking')
         });
@@ -14242,6 +14305,12 @@ var Booking = {
                 type:"POST"
             },
             serverSide: true,
+            columnDefs: [
+                {
+                    "searchable": false,
+                    "targets": 6,
+                }
+            ],
             order: [[ 5, 'desc' ]],
             columns: [
                 {data: "booking.shipping_line_id"},
