@@ -2762,6 +2762,7 @@ var GateIn = {
                 {data: "seal2", visible: false},
                 {data: "gate_record.special_seal", visible: false},
                 {data: "good", visible: false},
+                { data: "booking.act"},
                 {data: "gate_record.cond"},
                 {data: "gate_record.note", visible: false},
                 {
@@ -14308,15 +14309,16 @@ var Booking = {
             columnDefs: [
                 {
                     "searchable": false,
-                    "targets": 6,
+                    "targets": 7,
                 }
             ],
-            order: [[ 5, 'desc' ]],
+            order: [[ 6, 'desc' ]],
             columns: [
                 {data: "booking.shipping_line_id"},
                 {data: "booking.customer_id"},
                 {data: "booking.size"},
                 {data: "booking.quantity"},
+                {data: "booking.act"},
                 {data: "booking.booking_number"},
                 { data: "booking.date", visible:false },
                 {data: "container", render: "[, ].number"}
