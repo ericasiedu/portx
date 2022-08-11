@@ -13900,6 +13900,15 @@ var EmptyBooking = {
             ]
         });
 
+        editor.on('submitComplete', function (e, json, data, action){
+            if (action === 'remove') {
+                var status = json.cancelled;
+                if (status.length > 0) {
+                    Modaler.dModal('Create Booking Deletion Error', 'Booking has been already invoiced and paid');
+                }
+            }
+        });
+
         $("#booking").DataTable({
             dom: "Bfrtip",
             ajax: {
@@ -14298,6 +14307,15 @@ var Booking = {
             };
 
             request.send(`booking=${booking}&ids=${containerIds}&rowids=${ids}`);
+        });
+
+        editor.on('submitComplete', function (e, json, data, action){
+            if (action === 'remove') {
+                var status = json.cancelled;
+                if (status.length > 0) {
+                    Modaler.dModal('Booking Deletion Error', 'Booking has been already invoiced and paid');
+                }
+            }
         });
 
         $("#booking").DataTable({
