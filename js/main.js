@@ -14486,6 +14486,12 @@ var MoveToExport = {
                 type:"POST"
             },
             serverSide: true,
+            columnDefs: [
+                {
+                    "searchable": false,
+                    "targets": 3,
+                }
+            ],
             columns: [
                 { data: "number" },
                 { data: "name" },
