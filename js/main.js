@@ -13904,7 +13904,7 @@ var EmptyBooking = {
             if (action === 'remove') {
                 var status = json.cancelled;
                 if (status.length > 0) {
-                    Modaler.dModal('Create Booking Deletion Error', 'Booking has been already invoiced and paid');
+                    Modaler.dModal('Create Booking Deletion Error', 'Booking has been already invoiced. Cancel invoice first');
                 }
             }
         });
@@ -14313,7 +14313,7 @@ var Booking = {
             if (action === 'remove') {
                 var status = json.cancelled;
                 if (status.length > 0) {
-                    Modaler.dModal('Booking Deletion Error', 'Booking has been already invoiced and paid');
+                    Modaler.dModal('Booking Deletion Error', 'Booking has been already invoiced. Cancel invoice first');
                 }
             }
         });
