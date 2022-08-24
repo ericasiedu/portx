@@ -5709,6 +5709,11 @@ var Invoicing = {
                 $('#label_number').text('Booking Number');
                 $('.voyage').hide();
             }
+            else if ($('#trade_type').val() == 13){
+                $('#label_number').text('Bl Number');
+                $('.voyage').hide();
+                $('#tax_type').val(4)
+            }
             $('#b_number').val("");
             $('#voyage_id').val("");
             $('#error_label').text('');
@@ -5777,6 +5782,11 @@ var Invoicing = {
 
             if (customer == '') {
                 $('#customer_error').text('Customer field cannot be empty');
+                failed = true;
+            }
+
+            if (trade_type == '13' && $('#boe_number').val() == '') {
+                $('#error_boe_label').text('TRANSIT trade requires BOE Number');
                 failed = true;
             }
 
@@ -6027,7 +6037,6 @@ var Invoicing = {
                             if( ActivityCheckCharges.checkCharges(parsedData) && parsedData.st == 2844){
                                 $('#preview-left .removable').remove();
 
-// <<<<<<< HEAD
                             document.getElementById('company-name').innerHTML = parsedData.companyName;
                             document.getElementById('company-address').innerHTML = parsedData.companyLocation;
 
@@ -6040,7 +6049,7 @@ var Invoicing = {
                             document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
                             document.getElementById('tin').innerHTML = parsedData.tin;
                             
-                            if (trade == '11') {
+                            if (trade == '11' || trade == '13') {
                                 document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
                                 document.getElementById('agency-td').innerHTML = parsedData.agency;
                                 document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
@@ -6074,8 +6083,6 @@ var Invoicing = {
                                 document.getElementById('emp-ship-line-td').innerHTML = parsedData.shippingLine;
                                 document.getElementById('emp-customer-td').innerHTML = parsedData.customer;
 
-                                // document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
-                                // document.getElementById('exp-voyage-no-td').innerHTML = parsedData.voyageNumber;
                                 document.getElementById('emp-booking-number-td').innerHTML = parsedData.bNumber;
                                 document.getElementById('emp-booking-date-td').innerHTML = parsedData.bookingDate;
 
@@ -6083,7 +6090,7 @@ var Invoicing = {
 
                             }
 
-                            let midInfo; // = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
+                            let midInfo; 
                             switch (trade) {
                                 case '11':
                                     midInfo = document.querySelector('.mid-info.import');
@@ -6111,71 +6118,6 @@ var Invoicing = {
                             previewLeft.insertBefore(document.createElement('br'), document.querySelector('div.business'));
 
                             let fragment = document.createDocumentFragment();
-
-                            /* parsedData.activities.forEach(activity => {
-                                let row = document.createElement('tr');
-                                $(row).attr('class', 'removable');
-
-                                let descriptionData = document.createElement('td');
-                                descriptionData.innerHTML = activity.description;
-
-                                let quantityData = document.createElement('td');
-                                quantityData.innerHTML = activity.qty; */
-/* =======
-                                document.getElementById('company-name').innerHTML = parsedData.companyName;
-                                document.getElementById('company-address').innerHTML = parsedData.companyLocation;
-    
-                                let contactString = parsedData.companyPhone + "  ||  " + parsedData.companyMail + "  ||  " 
-                                        + parsedData.companyWeb;
-                                document.getElementById('company-contacts').innerHTML = contactString;
-    
-                                document.getElementById('invoice-date').innerHTML = parsedData.invoiceDate;
-                                document.getElementById('invoice-no').innerHTML = parsedData.invoiceNumber;
-                                document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
-                                document.getElementById('tin').innerHTML = parsedData.tin;
->>>>>>> master */
-                                
-                                /* if (trade == '11') {
-                                    document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
-                                    document.getElementById('agency-td').innerHTML = parsedData.agency;
-                                    document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
-                                    document.getElementById('customer-td').innerHTML = parsedData.customer;
-    
-                                    document.getElementById('vessel-td').innerHTML = parsedData.vessel;
-                                    document.getElementById('voyage-no-td').innerHTML = parsedData.voyageNumber;
-                                    document.getElementById('arrival-date-td').innerHTML = parsedData.arrivalDate;
-                                    document.getElementById('departure-date-td').innerHTML = parsedData.departureDate;
-                                    document.getElementById('rotation-number-td').innerHTML = parsedData.rotationNumber;
-    
-                                    document.getElementById('bl-number-td').innerHTML = parsedData.bNumber;
-                                    document.getElementById('boe-number-td').innerHTML = parsedData.boeNumber;
-                                    document.getElementById('do-number-td').innerHTML = parsedData.doNumber;
-                                    document.getElementById('release-date-td').innerHTML = '';
-                                    document.getElementById('containers-td').innerHTML = parsedData.containers;
-                                } else if (trade == '21') {
-                                    document.getElementById('shipper-td').innerHTML = parsedData.shipper;
-                                    document.getElementById('ship-line-td').innerHTML = parsedData.shippingLine;
-                                    document.getElementById('exp-customer-td').innerHTML = parsedData.customer;
-    
-                                    document.getElementById('exp-vessel-td').innerHTML = parsedData.vessel;
-                                    document.getElementById('exp-voyage-no-td').innerHTML = parsedData.voyageNumber;
-                                    document.getElementById('booking-number-td').innerHTML = parsedData.bNumber;
-                                    document.getElementById('booking-date-td').innerHTML = parsedData.bookingDate;
-    
-                                    document.getElementById('exp-containers-td').innerHTML = parsedData.containers;
-    
-                                }
-    
-                                let midInfo = trade == '11' ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
-                                console.log(document.querySelector('div.business'));
-    
-                                $(midInfo).css('position', 'static');
-                                let previewLeft = document.getElementById('preview-left');
-                                console.log(midInfo.cloneNode(true));
-                                previewLeft.insertBefore(midInfo.cloneNode(true), document.querySelector('div.business'));
-                                previewLeft.insertBefore(document.createElement('br'), document.querySelector('div.business'));
-    
-                                let fragment = document.createDocumentFragment() */;
     
                                 parsedData.activities.forEach(activity => {
                                     let row = document.createElement('tr');
@@ -6363,6 +6305,9 @@ var Invoicing = {
                                     if ($('#trade_type').val() == 11) {
                                         $('#invoice_link').html('<a href="/api/proforma_import_invoice/show_import/' + invoice_number + '" target="_blank">View Import Invoice</a>');
                                     }
+                                    if ($('#trade_type').val() == 13) {
+                                        $('#invoice_link').html('<a href="/api/proforma_import_invoice/show_import/' + invoice_number + '" target="_blank">View Transit Invoice</a>');
+                                    }
                                     if ($('#trade_type').val() == 21) {
                                         $('#invoice_link').html('<a href="/api/proforma_export_invoice/show_export/' + invoice_number + '" target="_blank">View Export Invoice</a>');
                                     }
@@ -6373,6 +6318,10 @@ var Invoicing = {
                                 else {
                                     if ($('#trade_type').val() == 11) {
                                         $('#invoice_link').html('<a href="/api/import_invoice/show_import/' + invoice_number + '" target="_blank">View Import Invoice</a>');
+                                    }
+
+                                    if ($('#trade_type').val() == 13) {
+                                        $('#invoice_link').html('<a href="/api/import_invoice/show_import/' + invoice_number + '" target="_blank">View Transit Invoice</a>');
                                     }
 
                                     if ($('#trade_type').val() == 21) {
@@ -6431,7 +6380,7 @@ var Invoicing = {
                     type:"POST",
                     data:{
                         ctnr: JSON.stringify(selectedContainers),
-                        trty: checkTrade,
+                        trty: checkTrade == 13 ? 11 : checkTrade,
                         bnum: checkB,
                         curr: checkCurrency,
                         prof:Invoicing.is_proforma ? 1 : 0,
@@ -6945,7 +6894,7 @@ var SupplementaryInvoice = {
                                      $('#messages-supp').addClass('show');
                                      $('#charge-link').addClass('active');
                                      $('#charge-link').attr('href', 'messages-supp');
-                                 }
+                                }
 
                         ActivityCheckCharges.checkCharges(result);
 
@@ -7060,7 +7009,7 @@ var SupplementaryInvoice = {
                                             document.getElementById('paid-up-to').innerHTML = parsedData.paidUpTo;
                                             document.getElementById('tin').innerHTML = parsedData.tin;
                                             
-                                            if (parsedData.tradeType == 1) {
+                                            if (parsedData.tradeType == 1 || parsedData.tradeType == 3) {
                                                 document.getElementById('importer-td').innerHTML = parsedData.importerAddress;
                                                 document.getElementById('agency-td').innerHTML = parsedData.agency;
                                                 document.getElementById('release-instructions-td').innerHTML = parsedData.releaseInstructions;
@@ -7109,6 +7058,7 @@ var SupplementaryInvoice = {
                                             let midInfo; // = parsedData.tradeType == 1 ? document.querySelector('.mid-info.import') : document.querySelector('.mid-info.export');
                                             switch (parsedData.tradeType) {
                                                 case 1:
+                                                case 3:
                                                     midInfo = document.querySelector('.mid-info.import');
                                                     break;
                                                     
@@ -7295,6 +7245,9 @@ var SupplementaryInvoice = {
                             if (result.ttyp == 1){
                                 $('#invoice_link').html('<a href="/api/proforma_supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Import Invoice</a>');
                             }
+                            if (result.ttyp == 3){
+                                $('#invoice_link').html('<a href="/api/proforma_supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Transit Invoice</a>');
+                            }
                             if (result.ttyp == 4){
                                 $('#invoice_link').html('<a href="/api/proforma_supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
                             }
@@ -7302,6 +7255,9 @@ var SupplementaryInvoice = {
                         else {
                             if (result.ttyp == 1) {
                                 $('#invoice_link').html('<a href="/api/supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Import Invoice</a>');
+                            }
+                            if (result.ttyp == 3) {
+                                $('#invoice_link').html('<a href="/api/supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Transit Invoice</a>');
                             }
                             if (result.ttyp == 4) {
                                 $('#invoice_link').html('<a href="/api/supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
@@ -7691,6 +7647,10 @@ var Invoice = {
                         var invoice = "";
 
                         if (data.trade_type.name == 'IMPORT') {
+                            invoice += '<a class="view_act" href="/api/import_invoice/show_import/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.trade_type.name == 'TRANSIT') {
                             invoice += '<a class="view_act" href="/api/import_invoice/show_import/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
@@ -9444,7 +9404,7 @@ var Payment = {
                     render: function (data, type, row) {
 
                         var invoice = "";
-                        if (data.invoice.trade_type == 1) {
+                        if (data.invoice.trade_type == 1 || data.invoice.trade_type == 3) {
                             invoice += '<a class="view_act" href="/api/ImportReceipt/showReceipt/' + data.payment.receipt_number + '" target="_blank">Receipt</a><br>';
                         }
                         if (data.invoice.trade_type == 4) {
@@ -9898,6 +9858,10 @@ var SuppInvoice = {
                         var invoice = "";
 
                         if (data.ttyp == 'IMPORT') {
+                            invoice += '<a class="view_act" href="/api/supp_import_invoice/show_import/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'TRANSIT') {
                             invoice += '<a class="view_act" href="/api/supp_import_invoice/show_import/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
@@ -10512,7 +10476,7 @@ var SupPayment = {
                     render: function (data, type, row) {
 
                         var invoice = "";
-                        if (data.invoice.trade_type == 1) {
+                        if (data.invoice.trade_type == 1 || data.invoice.trade_type == 3) {
                             invoice += '<a class="view_act" href="/api/SuppImportReciept/showReceipt/' + data.supplementary_payment.receipt_number + '" target="_blank">Receipt</a><br>';
                         }
                         if (data.invoice.trade_type == 4) {
