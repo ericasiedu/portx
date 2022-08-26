@@ -3233,7 +3233,7 @@ var GateOut= {
                 type:"POST"
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [15] }, { "searchable": false, "targets": 18 } ],
+            columnDefs: [ { type: 'date', 'targets': [15] }, { "searchable": false, "targets": 19 } ],
             order: [[ 9, 'desc' ]],
             columns: [
                 { data: "ctnum"},
