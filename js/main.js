@@ -1140,7 +1140,6 @@ var GateIn = {
                     {label: "IMPORT", value: 11},
                     {label: "EXPORT", value: 21},
                     {label: "EMPTY", value: 70},
-                    {label: "TRANSIT", value: 13},
                 ],
             }, {
                 label: "Container:",
@@ -5698,7 +5697,7 @@ var Invoicing = {
         $('#trade_type').on('change', function () {
 
             if ($('#trade_type').val() == 11){
-                $('#label_number').text('Bl Number');
+                $('#label_number').text('BL Number');
                 $('.voyage').hide();
             }
             else if ($('#trade_type').val() == 21){
@@ -5710,7 +5709,7 @@ var Invoicing = {
                 $('.voyage').hide();
             }
             else if ($('#trade_type').val() == 13){
-                $('#label_number').text('Bl Number');
+                $('#label_number').text('BL Number');
                 $('.voyage').hide();
                 $('#tax_type').val(4)
             }
@@ -6306,7 +6305,7 @@ var Invoicing = {
                                         $('#invoice_link').html('<a href="/api/proforma_import_invoice/show_import/' + invoice_number + '" target="_blank">View Import Invoice</a>');
                                     }
                                     if ($('#trade_type').val() == 13) {
-                                        $('#invoice_link').html('<a href="/api/proforma_import_invoice/show_import/' + invoice_number + '" target="_blank">View Transit Invoice</a>');
+                                        $('#invoice_link').html('<a href="/api/proforma_transit_invoice/show_transit/' + invoice_number + '" target="_blank">View Transit Invoice</a>');
                                     }
                                     if ($('#trade_type').val() == 21) {
                                         $('#invoice_link').html('<a href="/api/proforma_export_invoice/show_export/' + invoice_number + '" target="_blank">View Export Invoice</a>');
@@ -6321,7 +6320,7 @@ var Invoicing = {
                                     }
 
                                     if ($('#trade_type').val() == 13) {
-                                        $('#invoice_link').html('<a href="/api/import_invoice/show_import/' + invoice_number + '" target="_blank">View Transit Invoice</a>');
+                                        $('#invoice_link').html('<a href="/api/transit_invoice/show_transit/' + invoice_number + '" target="_blank">View Transit Invoice</a>');
                                     }
 
                                     if ($('#trade_type').val() == 21) {
@@ -7651,7 +7650,7 @@ var Invoice = {
                         }
 
                         if (data.trade_type.name == 'TRANSIT') {
-                            invoice += '<a class="view_act" href="/api/import_invoice/show_import/' + data.invoice.number + '" target="_blank">View</a><br>';
+                            invoice += '<a class="view_act" href="/api/transit_invoice/show_transit/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
                         if (data.trade_type.name == 'EXPORT') {
@@ -7876,6 +7875,10 @@ var InvoicePayments = {
                             invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/transit_invoice/show_transit/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         if (data.invoice.approved == "YES") {
 
                             if (!(data.invoice.status == 'PAID' || data.invoice.status == 'CANCELLED' || data.invoice.status == 'EXPIRED')) {
@@ -8022,6 +8025,10 @@ var InvoiceDeferrals = {
                             invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/transit_invoice/show_transit/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         invoice += "<a href='#' onclick='InvoiceDeferrals.deferInvoice(\"" + data.invoice.number + "\")'>Defer</a>";
 
 
@@ -8158,6 +8165,10 @@ var SupplementaryInvoiceDeferrals = {
 
                         if (data.ttyp == 'EMPTY') {
                             invoice += '<a class="view_act" href="/api/supp_empty_invoice/show_empty/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/supp_transit_invoice/show_transit/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         invoice += "<a href='#' onclick='SupplementaryInvoiceDeferrals.deferInvoice(\"" + data.spnum + "\")'>Defer</a>";
@@ -8357,6 +8368,10 @@ var SupplementaryInvoicePayment = {
 
                         if (data.ttyp == 'EMPTY') {
                             invoice += '<a class="view_act" href="/api/supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/supp_transit_invoice/show_transit/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         if (!(data.stat == 'PAID' || data.stat == 'CANCELLED' || data.stat == 'EXPIRED')) {
@@ -8616,6 +8631,11 @@ var InvoiceApproval = {
                         if (data.trade_type.name == 'EMPTY') {
                             invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
+
+                        if (data.trade_type.name == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/transit_invoice/show_transit/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+                        
 
                         if (data.invoice.status == 'UNPAID' || data.invoice.status == 'DEFERRED' || data.invoice.status == 'RECALLED') {
 
@@ -8910,6 +8930,10 @@ var InvoiceWaiver = {
                             invoice += '<a class="view_act" href="/api/empty_invoice/show_empty/' + data.invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/transit_invoice/show_transit/' + data.invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         invoice += "<a href='#' onclick='InvoiceWaiver.addWaiver(\"" + data.invoice.number + "\", \""+ data.currency.code +"\", "+ data.invoice.cost + ")' class='depot_cont'>Add Waiver</a><br/>";
 
                         return invoice;
@@ -9096,6 +9120,10 @@ var SupplementaryInvoiceWaiver = {
 
                         if (data.ttyp == 'EMPTY') {
                             invoice += '<a class="view_act" href="/api/supp_empty_invoice/show_empty/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/supp_transit_invoice/show_transit/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         invoice += "<a href='#' onclick='SupplementaryInvoiceWaiver.addWaiver(\"" + data.spnum + "\", \""+ data.code +"\", "+ data.cost + ")' class='depot_cont'>Add Waiver</a><br/>";
@@ -9353,6 +9381,10 @@ var SupplementaryInvoiceApproval = {
 
                         if (data.ttyp == 'EMPTY') {
                             invoice += '<a class="view_act" href="/api/supp_empty_invoice/show_empty/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        if (data.ttyp == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/supp_transit_invoice/show_transit/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         if (data.stat == 'UNPAID' || data.stat == 'DEFERRED' || data.stat == 'RECALLED'){
@@ -9862,7 +9894,7 @@ var SuppInvoice = {
                         }
 
                         if (data.ttyp == 'TRANSIT') {
-                            invoice += '<a class="view_act" href="/api/supp_import_invoice/show_import/' + data.spnum + '" target="_blank">View</a><br>';
+                            invoice += '<a class="view_act" href="/api/supp_transit_invoice/show_transit/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         if (data.ttyp == 'EXPORT') {
@@ -10238,6 +10270,10 @@ var ProformaInvoice = {
                             invoice += '<a class="view_act" href="/api/proforma_import_invoice/show_import/' + data.proforma_invoice.number + '" target="_blank">View</a><br>';
                         }
 
+                        if (data.trade_type.name == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/proforma_transit_invoice/show_transit/' + data.proforma_invoice.number + '" target="_blank">View</a><br>';
+                        }
+
                         if (data.trade_type.name == 'EXPORT') {
                             invoice += '<a class="view_act" href="/api/proforma_export_invoice/show_export/' + data.proforma_invoice.number + '" target="_blank">View</a><br>';
                         }
@@ -10432,6 +10468,14 @@ var ProfromaSuppInvoice = {
 
                         if (data.ttyp == 'EXPORT') {
                             invoice += '<a class="view_act" href="/api/proforma_supp_export_invoice/show_export/' + data.spnum + '" target="_blank">View</a><br>';
+                        }
+
+                        // if (data.trade_type.name == 'EMPTY') {
+                        //     invoice += '<a class="view_act" href="/api/proforma_empty_invoice/show_empty/' + data.proforma_invoice.number + '" target="_blank">View</a><br>';
+                        // }
+
+                        if (data.ttyp == 'TRANSIT') {
+                            invoice += '<a class="view_act" href="/api/proforma_supp_transit_invoice/show_transit/' + data.spnum + '" target="_blank">View</a><br>';
                         }
 
                         invoice += "<a href='#' onclick='ProfromaSuppInvoice.addWaiver(\"" + data.spnum + "\", \""+ data.code +"\", "+ data.cost + ")' class='depot_cont'>Add Waiver</a><br/>";
@@ -10634,7 +10678,7 @@ var InvoiceReports = {
                 {data: "dfnam", visible:false},
                 {data: "fname", visible:false},
                 {data: "date", visible:false},
-                {data: "stat", visible:false}
+                {data: "stat"}
             ],
             select: true,
             buttons: [
