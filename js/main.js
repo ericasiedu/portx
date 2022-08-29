@@ -9452,7 +9452,7 @@ var Payment = {
                     render: function (data, type, row) {
 
                         var invoice = "";
-                        if (data.invoice.trade_type == 1 || data.invoice.trade_type == 3) {
+                        if (data.invoice.trade_type == 1) {
                             invoice += '<a class="view_act" href="/api/ImportReceipt/showReceipt/' + data.payment.receipt_number + '" target="_blank">Receipt</a><br>';
                         }
                         if (data.invoice.trade_type == 4) {
@@ -9460,6 +9460,9 @@ var Payment = {
                         }
                         if (data.invoice.trade_type == 8) {
                             invoice += '<a class="view_act" href="/api/ExportReceipt/showReceipt/' + data.payment.receipt_number + '" target="_blank">Receipt</a><br>';
+                        }
+                        if (data.invoice.trade_type == 3) {
+                            invoice += '<a class="view_act" href="/api/TransitReceipt/show_receipt/' + data.payment.receipt_number + '" target="_blank">Receipt</a><br>';
                         }
                         return invoice;
 
@@ -10536,7 +10539,7 @@ var SupPayment = {
                     render: function (data, type, row) {
 
                         var invoice = "";
-                        if (data.invoice.trade_type == 1 || data.invoice.trade_type == 3) {
+                        if (data.invoice.trade_type == 1) {
                             invoice += '<a class="view_act" href="/api/SuppImportReciept/showReceipt/' + data.supplementary_payment.receipt_number + '" target="_blank">Receipt</a><br>';
                         }
                         if (data.invoice.trade_type == 4) {
@@ -10544,6 +10547,9 @@ var SupPayment = {
                         }
                         if (data.invoice.trade_type == 8) {
                             invoice += '<a class="view_act" href="/api/SuppExportReciept/showReceipt/' + data.supplementary_payment.receipt_number + '" target="_blank">Receipt</a><br>';
+                        }
+                        if (data.invoice.trade_type == 3) {
+                            invoice += '<a class="view_act" href="/api/SuppTransitReceipt/show_receipt/' + data.supplementary_payment.receipt_number + '" target="_blank">Receipt</a><br>';
                         }
                         return invoice;
 
