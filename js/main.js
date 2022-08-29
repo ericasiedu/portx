@@ -7272,7 +7272,7 @@ var SupplementaryInvoice = {
                                 $('#invoice_link').html('<a href="/api/supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Import Invoice</a>');
                             }
                             if (result.ttyp == 3) {
-                                $('#invoice_link').html('<a href="/api/supp_import_invoice/show_import/' + result.sinv + '" target="_blank">View Transit Invoice</a>');
+                                $('#invoice_link').html('<a href="/api/supp_transit_invoice/show_transit/' + result.sinv + '" target="_blank">View Transit Invoice</a>');
                             }
                             if (result.ttyp == 4) {
                                 $('#invoice_link').html('<a href="/api/supp_export_invoice/show_export/' + result.sinv + '" target="_blank">View Export Invoice</a>');
