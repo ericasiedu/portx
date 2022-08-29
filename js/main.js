@@ -3224,6 +3224,22 @@ var GateOut= {
                     Modaler.dModal("Deletion", "Container cannot be deleted. Container already gated out");
                 }
             }
+            if(action === 'create'){
+               $gate_record_id = data['id'];
+               $.ajax({
+                    url:"/api/container/update_trade_type",
+                    type: "POST",
+                    data:{
+                        id: $gate_record_id
+                    },
+                    success: function(){
+                        TableRfresh.freshTable('gate_out');
+                    },
+                    error: function(){
+                        alert("something went wrong");
+                    }
+               });
+            }
         });
 
         $('#gate_out').DataTable( {
@@ -11882,6 +11898,7 @@ var GateReport = {
                 }
             },
             serverSide: true,
+            order: [[ 10, 'desc' ]],
             columns: [
                 { data: "ctnum" },
                 { data: "code"},
