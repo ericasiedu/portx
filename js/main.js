@@ -2740,7 +2740,7 @@ var GateIn = {
                 type: "POST"
             },
             serverSide: true,
-            columnDefs: [{type: 'date', 'targets': [16]}, {"searchable": false, "targets": 19}
+            columnDefs: [{type: 'date', 'targets': [16]}, {"searchable": false, "targets": 20}
             ],
             order: [[10, 'desc']],
             columns: [
