@@ -686,6 +686,15 @@ var Container= {
             }
         });
 
+        editor.on('submitComplete', function (e, json, data, action) {
+            if (action === 'remove') {
+                var status = json.cancelled;
+                if (status.length > 0) {
+                    Modaler.dModal('Container Error', 'Cannot delete container. Container is in used');
+                }
+            }
+        });
+
         $('#container').DataTable( {
             dom: "Bfrtip",
             ajax: {
