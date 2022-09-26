@@ -455,8 +455,7 @@ var Container= {
                 },
                 options:[
                     { label: "IMPORT", value: 11 },
-                    { label: "EXPORT", value: 21 },
-                    { label: "TRANSIT", value: 13 }
+                    { label: "EXPORT", value: 21 }
                 ]
             },{
                 label: "Number:",
@@ -632,14 +631,12 @@ var Container= {
         editor.dependent('container.trade_type_code', function (val) {
             
             if (val == 21) {
-                editor.field('container.voyage').val('');
                 editor.field('container.icl_seal_number_1').val('');
                 editor.field('container.icl_seal_number_2').val('');
                 editor.field('container.bl_number').val('');
                 editor.field('container.importer_address').val('');
             }
             else {
-                editor.field('container.voyage').val('');
                 editor.field('container.book_number').val('');
             }
             return val == 21 ?
@@ -709,7 +706,7 @@ var Container= {
                 { data: "container.number" },
                 { data: "container.bl_number" },
                 { data: "container.book_number",visible:false},
-                { data:"voyage.reference"},
+                { data:"container.voyage"},
                 { data: "container.seal_number_1" },
                 { data: "container.seal_number_2",visible:false },
                 { data: "container.icl_seal_number_1",visible:false},
