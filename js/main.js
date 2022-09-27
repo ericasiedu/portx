@@ -458,6 +458,13 @@ var Container= {
                     { label: "EXPORT", value: 21 }
                 ]
             },{
+                label: "ID:",
+                name: "container.id",
+                attr: {
+                    class: "form-control",
+                    maxlength: 11
+                }
+            },{
                 label: "Number:",
                 name: "container.number",
                 attr: {
@@ -628,6 +635,7 @@ var Container= {
         });
 
         editor.field('container.book_number').hide();
+        editor.field('container.id').hide();
         editor.dependent('container.trade_type_code', function (val) {
             
             if (val == 21) {
