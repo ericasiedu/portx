@@ -838,12 +838,12 @@ var GateIn = {
         if (type == 21) {
             consig.style.display = 'block';
             book_number.style.display = 'block';
-            document.getElementById('book_number').disabled = true;
+
         }
         else {
             consig.style.display = 'none';
             book_number.style.display = 'none';
-            document.getElementById('book_number').disabled = false;
+
         }
         
 
@@ -935,7 +935,7 @@ var GateIn = {
                 var reference = result.reference;
                 var code = result.code;
                 var book_number = result.book_number;
-                
+                var trade_type = result.trade;
 
                 $('#full_stat').val(full_status);
                 $('#oog').val(oog_stat);
@@ -946,7 +946,7 @@ var GateIn = {
                 $('#seal_number2').val(seal2);
                 $('#line').val(line);
                 $('#code').val(code);
-                $('#book_number').val(book_number);
+              
 
                 if ($('#trade_select').val() == 21) {
                     $('#consignee').show();
@@ -955,10 +955,11 @@ var GateIn = {
                     var checked = false;
                     GateIn.fieldChecked(checked);
                     $('#code').prop('disabled',true);
-                    $('#book_numberID').show();
-
+                    $('#book_numberID').show();           
                     GateIn.loadTradeTypeContainers();
                     GateIn.invoiceContainer(container);
+                         trade_type == "IMPORT" ? $('#book_number').val("") :   $('#book_number').val(book_number);
+                    trade_type == "IMPORT" ? $('#book_number').prop('disabled',false) :$('#book_number').prop('disabled',true); 
                 }
                 else {
                     $('#consignee').hide();
@@ -1152,8 +1153,7 @@ var GateIn = {
                 },
                 options: [
                     {label: "IMPORT", value: 11},
-                    {label: "EXPORT", value: 21},
-                    {label: "EMPTY", value: 70},
+                    {label: "EXPORT", value: 21}
                 ],
             }, {
                 label: "Container:",
@@ -1300,6 +1300,7 @@ var GateIn = {
                     label: "Vehicle:",
                     name: "gate_record.vehicle_id",
                     attr: {
+                        id: "vehicleID",
                         list: "vehicles",
                         class: "form-control"
                     }
@@ -1307,6 +1308,7 @@ var GateIn = {
                     label: "Driver:",
                     name: "gate_record.driver_id",
                     attr: {
+                        id:"driverID",
                         list: "drivers",
                         class: "form-control"
                     }
@@ -1314,6 +1316,7 @@ var GateIn = {
                     label: "Trucking Company:",
                     name: "gate_record.trucking_company_id",
                     attr: {
+                        id: "truckID",
                         list: "companies",
                         class: "form-control"
                     }
@@ -2101,6 +2104,119 @@ var GateIn = {
 
             var error_check = false;
 
+            if (action === 'create' && trade_type == 21) {
+                var seal_no1 = this.field('seal_number_1');
+                var seal_no2 = this.field('seal_number_2');
+                var container_number = $('#container').val();
+                var booking_number = this.field('book_number');
+                var consignee = this.field('gate_record.consignee');
+                var vehicle = this.field('gate_record.vehicle_id');
+                var driver = this.field('gate_record.driver_id');
+                var truck = this.field('gate_record.trucking_company_id');
+                var shipping_line = this.field('shipping_line');
+
+                $.ajax({
+                    url:"/api/container/update_export_seal",
+                    type: "POST",
+                    data: {
+                        sno1: seal_no1.val(),
+                        sno2: seal_no2.val(),
+                        ctno: container_number,
+                        trad: trade_type,
+                        bkno: booking_number.val(),
+                        cons: consignee.val(),
+                        shid: shipping_line.val(),
+                        vech: vehicle.val(),
+                        drvr: driver.val(),
+                        trk: truck.val()
+                    },
+                    success: function(data){
+                        var data = JSON.parse(data);
+                        if (data.st == 164) {
+                            if (data.err.seal1) {
+                                seal_no1.error("Empty field");
+                                var seal_number1 = document.querySelector('#seal_number1');
+                                seal_number1.scrollIntoView();
+                            }
+                            else if (data.err.sea3 == 'senu0') {
+                                seal_no1.error("Seal number 1 cannot be NA");
+                                var seal_number1 = document.querySelector('#seal_number1');
+                                seal_number1.scrollIntoView();
+                            }
+                            else if (data.err.sea1 == 'senu1') {
+                                seal_no1.error("Seal number 1 must not contain symbols");
+                                var seal_number1 = document.querySelector('#seal_number1');
+                                seal_number1.scrollIntoView();
+                            }
+                            if (data.err.seal2) {
+                                seal_no2.error("Empty field");
+                                var seal_number2 = document.querySelector('#seal_number2');
+                                seal_number2.scrollIntoView();
+                            }
+                            if (data.err.seal4 == 'senum') {
+                                seal_no2.error("Seal number 2 cannot be NA");
+                                var seal_number2 = document.querySelector('#seal_number2');
+                                seal_number2.scrollIntoView();
+                            }
+                            else if (data.err.sea2 == 'senu2') {
+                                seal_no2.error("Seal number 2 must not contain symbols");
+                                var seal_number2 = document.querySelector('#seal_number2');
+                                seal_number2.scrollIntoView();
+                            }
+                            if (data.err.bknu) {
+                                booking_number.error("Empty field");
+                                var book_num = document.querySelector('#book_numberID');
+                                book_num.scrollIntoView();
+                            }
+                            else if (data.err.bkerr == 'bkn_err') {
+                                booking_number.error("Booking Number must not contains symbols");
+                                var book_num = document.querySelector('#book_numberID');
+                                book_num.scrollIntoView();
+                            }
+                            if (data.err.conss) {
+                                consignee.error("Empty field");
+                                var consig = document.querySelector('#consignee');
+                                consig.scrollIntoView();
+                            }
+                            if (data.err.ship) {
+                                shipping_line.error("Empty field");
+                                var liner = document.querySelector('#line');
+                                liner.scrollIntoView();
+                            }
+                            else if(data.err.eship == 'ersh'){
+                                shipping_line.error("Shipping Line does not exist");
+                                var liner = document.querySelector('#line');
+                                liner.scrollIntoView();
+                            }
+                            if (data.err.vch) {
+                                vehicle.error("Empty field");
+                                var vehicl = document.querySelector('#vehicleID');
+                                vehicl.scrollIntoView();
+                            }
+                            if (data.err.drv) {
+                                driver.error("Empty field");
+                                var drive = document.querySelector('#driverID');
+                                drive.scrollIntoView();
+                            }
+                            if (data.err.truk) {
+                                truck.error("Empty field");
+                                var trucker = document.querySelector('#truckID');
+                                trucker.scrollIntoView();
+                            }
+                        
+                        }
+                        else if (data.st == 265) {
+                            error_check = true;
+                            return error_check;
+                        }
+                    },
+                    error: function(){
+                        alert('something went wrong');
+                    }
+                });
+                
+            }
+
             if (action === 'edit' && (trade_type == 21 || trade_type == 70)) {
                 var table = $('#gate_in').DataTable();
                 var rowData = table.row({selected: true}).data();
@@ -2735,6 +2851,8 @@ var GateIn = {
                     alert('something went wrong');
                 }
             });
+
+        
         });
 
 
