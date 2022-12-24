@@ -4496,12 +4496,21 @@ var YardPlan = {
                     {label:"YES",value:1},
                     {label:"NO",value:0}
                 ]
+            },{
+                label: "Stack Time:",
+                name: "stack_time",
+                attr:{
+                    class:"form-control"
+                }
             }]
         });
 
         yardPlanEditor.on('submitSuccess', function () {
             TableRfresh.freshTable('yard_plan');
         });
+
+        yardPlanEditor.field('stack_time').hide();
+        
 
         $('#yard_plan').DataTable( {
             dom: "Bfrtip",
@@ -4510,13 +4519,13 @@ var YardPlan = {
                 type: "POST",
             },
             serverSide: true,
-            columnDefs: [ { type: 'date', 'targets': [14] }, { "searchable": false, "targets": 15 } ],
-            order: [[ 14, 'desc' ]],
+            columnDefs: [ { type: 'date', 'targets': [15] }, { "searchable": false, "targets": 16 } ],
+            order: [[ 15, 'desc' ]],
             columns: [
                 { data: "cid", visible:false },
                 { data: "tknam"},
                 { data: "emx", visible:false },
-                { data: "trty"},
+                { data: "trty", visible:false },
                 { data: "sts" },
                 { data: "stk" },
                 { data: "pos" },
@@ -4525,6 +4534,7 @@ var YardPlan = {
                 { data: "opr", visible:false },
                 { data: "owr", visible:false },
                 { data: "rfs", visible:false },
+                { data:"mins" },
                 { data: "veh" },
                 { data: "eqno" },
                 { data: "date", visible:false },
