@@ -4397,6 +4397,44 @@ var YardPlan = {
         }
     },
 
+    approveStack:function(id){
+        $.ajax({
+            url:"/api/yard_planning/approve_stack",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 262){
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    removeFromStack:function(id){
+        $.ajax({
+            url:"/api/yard_planning/remove_stack_container",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 263){
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
     iniTable:function(){
         yardPlanEditor =  new $.fn.dataTable.Editor({
             ajax: "/api/yard_planning/yard_table",
@@ -4497,6 +4535,18 @@ var YardPlan = {
                     {label:"NO",value:0}
                 ]
             },{
+                label: "Assigned by:",
+                name: "assigned_by",
+                attr:{
+                    class:"form-control"
+                }
+            },{
+                label: "Yard Activity:",
+                name: "yard_activity",
+                attr:{
+                    class:"form-control"
+                }
+            },{
                 label: "Stack Time:",
                 name: "stack_time",
                 attr:{
@@ -4510,7 +4560,8 @@ var YardPlan = {
         });
 
         yardPlanEditor.field('stack_time').hide();
-        
+        yardPlanEditor.field('yard_activity').hide();
+        yardPlanEditor.field('assigned_by').hide();
 
         $('#yard_plan').DataTable( {
             dom: "Bfrtip",
@@ -4547,7 +4598,14 @@ var YardPlan = {
                             gated_record += "<a href='#' onclick='YardPlan.manageYard(\""+ data.cnum + "\", " + data.cid + ")' class='depot_cont'>Manage Yard</a><br/>"
                         }
                         else if(data.yid == "NOT STACKED"){
-                            gated_record += "<a href='#' onclick='YardPlan.moveToYard(\""+ data.cnum + "\", " + data.cid + ")' class='depot_cont'>Move To Yard</a><br/>"
+                            gated_record += "<a href='#' onclick='YardPlan.moveToYard(\""+ data.cnum + "\", " + data.cid + ")' class='depot_cont'>Move To Stack</a><br/>"
+                        }
+                        if((data.posi == 1) && (data.appr == 0)){
+                            gated_record += "<a href='#' onclick='YardPlan.approveStack(\""+ data.yard_id + "\")' class='depot_cont'>Approve</a><br/>"
+                        }
+                        if(data.appr ==1){
+                            gated_record += "<a href='#' onclick='YardPlan.removeFromStack(\""+ data.yard_id + "\")' class='depot_cont'>Remove From Stack</a><br/>"
+                            gated_record += "<span class='position'><strong>Positioned</strong></span>";
                         }
 
                         return gated_record;
@@ -4613,6 +4671,91 @@ var ReachStack={
             ],
             select: true,
             buttons: Helpers.permissionButtonBuilder(editor,'Reach Stacker')
+        });
+    }
+}
+
+var OperatorView={
+
+    positionContainer:function(yard_id){
+        $.ajax({
+            url:"/api/operator_view/position_container",
+            type:"POST",
+            data:{
+                id:yard_id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 260){
+                    TableRfresh.freshTable('operator_view_tbl');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    removeContainer:function(yard_id) {
+        $.ajax({
+            url:"/api/operator_view/remove_container",
+            type:"POST",
+            data:{
+                id:yard_id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 264){
+                    TableRfresh.freshTable('operator_view_tbl');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    iniTable:function(){
+        $('#operator_view_tbl').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/operator_view/table",
+                type: "POST",
+            },
+            serverSide: true,
+            columnDefs: [ { type: 'date', 'targets': [8] }, { "searchable": false, "targets": 7 },{ "searchable": false, "targets": 9 } ],
+            order: [[ 8, 'desc' ]],
+            columns: [
+                { data: "cnum" },
+                { data: "emx"},
+                { data: "size" },
+                { data: "opr" },
+                { data: "owr" },
+                { data: "rfs" },
+                { data: "stk" },
+                { data: null,
+                    render:function(data,type,row){
+                        return data.stk+""+data.bay+""+data.row+""+data.tier;
+                    } },
+                { data: "date" },
+                {data: null,
+                    render: function (data, type, row) {
+                        var position = "";
+                        if (data.activity == "MOVE") {
+                            position += "<a href='#' onclick='OperatorView.positionContainer(\"" + data.yard_id + "\")' class='depot_cont'>Position</a><br/>";
+                        }
+                        else if(data.activity == "REMOVE"){
+                            position += "<a href='#' onclick='OperatorView.removeContainer(\"" + data.yard_id + "\")' class='depot_cont'>Remove</a><br/>";
+                        }
+                        return position;
+
+                    }
+                }
+            ],
+            select: true,
+            buttons: [
+                { extend:"colvis", className:"btn btn-primary"}
+            ]
         });
     }
 }

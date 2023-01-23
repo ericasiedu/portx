@@ -10,6 +10,10 @@
     background-image: url(../img/header/general.png)
 }
 
+.position{
+    color:green;
+  }
+
 .doc-btn-spacing .btn {
     margin-bottom: 10px;
     margin-right: 6px
