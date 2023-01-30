@@ -4487,8 +4487,10 @@ var YardPlan = {
             },
             success:function(data){
                 var result = JSON.parse(data);
-                
-                if(result.st == 270){
+                if (result.st == 180) {
+                    Modaler.dModal("Move Examination Error","Cannot move container which is not IMPORT trade type");
+                }
+                else if(result.st == 270){
                     Modaler.dModal('Examination','Container has been move to Examination Area');
                     TableRfresh.freshTable('yard_plan');
                 }
