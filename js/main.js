@@ -4407,6 +4407,7 @@ var YardPlan = {
             success:function(data){
                 var result = JSON.parse(data);
                 if(result.st == 262){
+                    Modaler.dModal('Stack Approval','Container has been successfully stacked and confirmed');
                     TableRfresh.freshTable('yard_plan');
                 }
             },
@@ -4448,6 +4449,7 @@ var YardPlan = {
             success:function(data){
                 var result = JSON.parse(data);
                 if(result.st == 265){
+                    Modaler.dModal('Container Removal','Container has been successfully removed from stack');
                     TableRfresh.freshTable('yard_plan');
                 }
             },
@@ -4468,7 +4470,7 @@ var YardPlan = {
                 var result = JSON.parse(data);
                 if(result.st == 127){
                     var header = "Pending Approval Error";
-                    var body = "Operator has not position and stacked container yet";
+                    var body = "Container has not been positioned yet";
                     Modaler.dModal(header,body);
                 }
             },
