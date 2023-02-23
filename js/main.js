@@ -4178,6 +4178,1399 @@ var Activity = {
     }
 }
 
+var YardPlan = {
+
+    moveToYard:function(number,container_id){
+         $.ajax({
+                url: "/api/yard_planning/get_container",
+                type: "POST",
+                data: {cid: container_id},
+                success: function (data) {
+                    var result = $.parseJSON(data);
+                    $('#containerID').val(result.cnum);
+                },
+                error: function () {
+                    alert("something went wrong");
+                }
+            });
+
+            yardPlanEditor.create({
+                title: 'Add To Yard',
+                buttons: 'Add',
+            });
+    },
+
+    manageYard:function(container_id){
+        var error_check = false;
+        var url = "/api/yard_planning/check_stack";
+        var request = new XMLHttpRequest();
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.onload = function () {
+            if (request.readyState == 4 && request.status == 200) {
+                var response = JSON.parse(request.responseText);
+
+                if (response.st == 281) {
+                    $.ajax({
+                        url: "/api/yard_planning/get_stack_info",
+                        type: "POST",
+                        data: {cid: container_id},
+                        success: function (data) {
+                            var result = $.parseJSON(data)
+                            $('#containerID').val(result.cnum);
+                            $('#stackID').val(result.stk);
+                            $('#bayID').val(result.bay);
+                            $('#rowID').val(result.row);
+                            $('#tierID').val(result.tier);
+                            $('#reeferID').val(result.reft);
+                            $('#equipmentID').val(result.eqip);
+                        },
+                        error: function () {
+                            alert('Something Went Wrong');
+                        }
+                    });
+
+                    yardPlanEditor
+                        .title('Edit Yard Stack')
+                        .buttons({
+                            "label": "Update", "fn": function () {
+                                var stack = $('#stackID').val();
+                                var bay = this.field('bay');
+                                var row = $('#rowID').val();
+                                var tier = $('#tierID').val();
+                                var reefer = $('#reeferID').val();
+                                var stacker = this.field('stack');
+                                var tier_row = this.field('tier');
+                                var equipment = this.field('equipment_no');
+
+                                $.ajax({
+                                    url: "/api/yard_planning/update_stack",
+                                    type: "POST",
+                                    data: {
+                                        cid:container_id,
+                                        stk: stack,
+                                        bay: bay.val(),
+                                        row: row,
+                                        tier: tier,
+                                        refs: reefer,
+                                        eqip: equipment.val(),
+                                        isyd:true
+                                    },
+                                    success: function (data) {
+                                        var result = JSON.parse(data);
+                                        if (result.st==176) {
+                                            stacker.error("Stack "+result.stk+" does not exist");
+                                        }
+                                            if(result.st == 177){
+                                                stacker.error("Container already at Stack position");
+                                            }
+                                            if (result.st == 170) {
+                                                if (result.berr == "empty") {
+                                                    bay.error("Bay field cannot be empty");
+                                                }
+                                                if (result.eqer == "empty") {
+                                                    equipment.error("Equipment Number field cannot be empty");
+                                                }
+                                            }
+                                            if (result.st == 161) {
+                                                equipment.error("Reach Stacker equipment Number does not exist");
+                                            }
+                                            if (result.st == 163) {
+                                                equipment.error("Reach Stacker must be "+result.equipment_no+" EMPTY type");
+                                            }
+                                            if (result.st == 154) {
+                                                stacker.error("Container is DG and must be place at Stack DG");
+                                            }
+                                            else if (result.st == 155) {
+                                                stacker.error("Container cannot be place at Stack DG");
+                                            }
+                                            else if (result.st == 156) {
+                                                stacker.error("Stack "+stack+" of bay "+bay+" of row "+row+" is full");
+                                               
+                                            }
+
+                                            if (result.st == 158) {
+                                                stacker.error("Cannot place "+ result.ttyp +" container on top of "+result.ftyp+" container")
+                                            }
+                                            if (result.st == 159) {
+                                                stacker.error("Cannot place "+result.size+" container on top of "+result.fsiz+" container")
+                                            }
+                                            if (result.st == 160) {
+                                                stacker.error("Cannot place "+result.hgt+" container on top of "+result.fhgt+" container")
+                                            }
+                                             if (result.st ==157) {
+                                                tier_row.error('Cannot use tier '+ tier +' whiles tier '+result.tier1+' is vacant');
+                                            
+                                            }
+                                            else if(result.st == 170){
+                                                tier_row.error('Cannot use tier '+ tier +' whiles tier '+result.tier2+' is vacant');
+                                            }
+              
+                                            if(result.st == 298){
+                                                yardPlanEditor.close();
+                                                TableRfresh.freshTable('yard_plan');
+                                            }
+                                    },
+                                    error: function () {
+                                        alert('something went wrong');
+                                    }
+                                });
+                            }
+                        })
+                        .edit();
+                        TableRfresh.freshTable('yard_plan');
+                } 
+            }
+            else {
+                alert('something went wrong');
+
+            }
+        };
+        request.send("data=" + container_id);
+
+     
+    },
+
+    loadBays:function(){
+        var stack = document.getElementById('stackID');
+        var stacker = stack.value;
+
+        if (stacker == "A") {
+            YardPlan.baysList(15);
+        }
+        else if(stacker == "H"){
+            YardPlan.baysList(17);
+        }
+
+        switch (stacker) {
+            case "A":
+            case "Q":
+                YardPlan.baysList(15);
+                break;
+            case "H":
+            case "I":
+                YardPlan.baysList(9);
+                break;
+            case "G":
+                YardPlan.baysList(11);
+                break;
+            case "J":
+            case "DG":
+            case "R":
+                YardPlan.baysList(8);
+                break;
+            case "K":
+            case "L":
+                YardPlan.baysList(10);
+                break;
+            case "F":
+                YardPlan.baysList(26);
+                break;
+            case "M":
+                YardPlan.baysList(18);
+                break;
+            case "N":
+            case "P":
+                YardPlan.baysList(16);
+                break;
+            case "O":
+                YardPlan.baysList(12);
+                break;
+            default:
+                YardPlan.baysList(17);
+                break;
+        }
+        
+    },
+
+    baysList:function(stack){
+        var datalist = document.getElementById('bays');
+        datalist.innerHTML = '';
+        for (var i = 1; i <= stack; i++) {
+            var option = document.createElement('option');
+            option.innerText = i;
+            datalist.appendChild(option);
+        }
+    },
+
+    approveStack:function(id){
+        $.ajax({
+            url:"/api/yard_planning/approve_stack",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 262){
+                    Modaler.dModal('Stack Approval','Container has been successfully stacked and confirmed');
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    removeFromStack:function(id){
+        $.ajax({
+            url:"/api/yard_planning/remove_stack_container",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if (result.st == 129) {
+                    Modaler.dModal('Removal Error','Cannot remove container from stack due to other containers on top of it. Container at position '+result.stk + result.bay +result.row + result.tier +'');
+                }
+                else if(result.st == 263){
+                    Modaler.dModal('Removal Assignment',"Container has been successfully assigned");
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    approveRemoval:function(id){
+        $.ajax({
+            url:"/api/yard_planning/approve_removal",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 265){
+                    Modaler.dModal('Container Removal','Container has been successfully removed from stack');
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    pendingApproval:function(id) {
+        $.ajax({
+            url:"/api/yard_planning/validate_position",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 127){
+                    var header = "Pending Approval Error";
+                    var body = "Container has not been positioned yet";
+                    Modaler.dModal(header,body);
+                }
+                else if(result.st == 128){
+                    var header = "Pending Approval Error";
+                    var body = "Container has not been moved to examination area yet";
+                    Modaler.dModal(header,body);
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    moveToExamination:function(id){
+        $.ajax({
+            url:"/api/yard_planning/move_examination",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if (result.st == 180) {
+                    Modaler.dModal("Move Examination Error","Cannot move container which is not IMPORT trade type");
+                }
+                else if(result.st == 270){
+                    Modaler.dModal('Examination','Container has been moved to examination area');
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    approveExamination:function(id,yard_id){
+        $.ajax({
+            url:"/api/yard_planning/approve_examination",
+            type:"POST",
+            data:{
+                id:id,
+                yid:yard_id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 268){
+                    Modaler.dModal('Examination Approval','Container examination move has been approved');
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    iniTable:function(){
+        yardPlanEditor =  new $.fn.dataTable.Editor({
+            ajax: "/api/yard_planning/yard_table",
+            fields: [ {
+                label: "Container:",
+                name: "container_id",
+                attr: {
+                    class: "form-control",
+                    id: "containerID",
+                    disabled: true,
+                }
+            },
+            {
+                label: "Stack:",
+                name: "stack",
+                attr: {
+                    list:"stack_list",
+                    onchange:"YardPlan.loadBays()",
+                    class: "form-control",
+                    id:"stackID"
+                }
+            },{
+                label: "Bay:",
+                name: "bay",
+                def:1,
+                attr: {
+                    list:"bays",
+                    class: "form-control",
+                    id:"bayID"
+                }
+            },{
+                label: "Row:",
+                name: "row",
+                attr: {
+                    class: "form-control",
+                    id:"rowID"
+                },
+                type: "select",
+                options:[
+                    {label:"A", value:"A"},
+                    {label:"B", value:"B"},
+                    {label:"C", value:"C"},
+                    {label:"D", value:"D"}
+                ]
+            },{
+                label: "Tier:",
+                name: "tier",
+                attr: {
+                    class: "form-control",
+                    id:"tierID"
+                },
+                type: "select",
+                options:[
+                    {label:"1",value:1},
+                    {label:"2",value:2},
+                    {label:"3",value:3}
+                ]
+            },{
+                label: "Equipment Number:",
+                name: "equipment_no",
+                attr: {
+                    class: "form-control",
+                    id:"equipmentID",
+                    list:"equipments"
+                }
+            },{
+                label: "Reefer Status:",
+                name: "reefer_status",
+                attr: {
+                    class: "form-control",
+                    id:"reeferID"
+                },
+                def:0,
+                type: "select",
+                options:[
+                    {label:"YES",value:1},
+                    {label:"NO",value:0}
+                ]
+            },{
+                label: "Assigned by:",
+                name: "assigned_by",
+                attr:{
+                    class:"form-control"
+                }
+            },{
+                label: "Yard Activity:",
+                name: "yard_activity",
+                attr:{
+                    class:"form-control"
+                }
+            },{
+                label: "Stack Time:",
+                name: "stack_time",
+                attr:{
+                    class:"form-control"
+                }
+            }]
+        });
+
+        yardPlanEditor.on('submitSuccess', function () {
+            TableRfresh.freshTable('yard_plan');
+        });
+
+        yardPlanEditor.field('stack_time').hide();
+        yardPlanEditor.field('yard_activity').hide();
+        yardPlanEditor.field('assigned_by').hide();
+
+        $('#yard_plan').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/yard_planning/table",
+                type: "POST",
+            },
+            serverSide: true,
+            columnDefs: [ { type: 'date', 'targets': [15] }, { "searchable": false, "targets": 16 } ],
+            order: [[ 15, 'desc' ]],
+            columns: [
+                { data: "cid", visible:false },
+                { data: "tknam"},
+                { data: "emx", visible:false },
+                { data: "trty", visible:false },
+                { data: "sts" },
+                { data: "stk" },
+                { data: "pos" },
+                { data: "cnum" },
+                { data: "size" },
+                { data: "opr", visible:false },
+                { data: "owr", visible:false },
+                { data: "rfs", visible:false },
+                { data:"mins" },
+                { data: "veh" },
+                { data: "eqno" },
+                { data: "date", visible:false },
+                {data: null,
+                    render: function (data, type, row) {
+
+                        var gated_record = "";
+
+                        // if(data.yid == "STACKED"){
+                        //     gated_record += "<a href='#' onclick='YardPlan.manageYard(\""+ data.cid + "\")' class='depot_cont'>Manage Yard</a><br/>"
+                        // }
+                        if(data.yid == "NOT STACKED"){
+                            gated_record += "<a href='#' onclick='YardPlan.moveToYard(\""+ data.cnum + "\", " + data.cid + ")' class='depot_cont'>Move To Stack</a><br/>";
+                            gated_record += "<a href='#' onclick='YardPlan.moveToExamination(\""+ data.gid + "\")' class='depot_cont'>Move To Examination</a><br/>"
+                        }
+                        if ((data.posi == 0) && (data.actv == "ASSIGN")) {
+                            gated_record += "<a href='#' onclick='YardPlan.pendingApproval(\""+ data.yard_id + "\")' class='depot_cont'>Pending Approval</a><br/>" 
+                        }
+                        else if((data.posi == 1) && (data.appr == 0) && (data.actv == "ASSIGN")){
+                            gated_record += "<a href='#' onclick='YardPlan.approveStack(\""+ data.yard_id + "\")' class='depot_cont'>Approve</a><br/>"
+                        }
+                        else if((data.posi == 1) && (data.appr == 0) &&(data.actv == "REMOVE")){
+                            gated_record += "<a href='#' onclick='YardPlan.approveRemoval(\""+ data.yard_id + "\")' class='depot_cont'>Approve Removal</a><br/>"
+                        }
+                        else if ((data.posi == 0) && ((data.actv == "REMOVE") || (data.actv == "EXAMINATION"))) {
+                            gated_record += "<a href='#' onclick='YardPlan.pendingApproval(\""+ data.yard_id + "\")' class='depot_cont'>Pending Approval</a><br/>" 
+                        }
+                        if ((data.posi == 1) && (data.actv == "EXAMINATION")) {
+                            gated_record += "<a href='#' onclick='YardPlan.approveExamination(\""+ data.gid + "\", "+data.yard_id+")' class='depot_cont'>Approve Examination Move</a><br/>" 
+                        }
+                        if(data.appr ==1){
+                            gated_record += "<a href='#' onclick='YardPlan.manageYard(\""+ data.cid + "\")' class='depot_cont'>Manage Yard</a><br/>"
+
+                            gated_record += "<a href='#' onclick='YardPlan.removeFromStack(\""+ data.yard_id + "\")' class='depot_cont'>Remove From Stack</a><br/>"
+                            gated_record += "<span class='position'><strong>Positioned</strong></span><br/>";
+                        }
+
+
+                        return gated_record;
+
+                    }
+                }
+            ],
+            select: true,
+            buttons: [
+                { extend:"colvis", className:"btn btn-primary"}
+            ]
+        });
+
+    }
+}
+
+var ReachStack={
+    iniTable: function () {
+        editor = new $.fn.dataTable.Editor( {
+            ajax: "/api/reach_stack/table",
+            table: "#reach_stack",
+            fields: [ {
+                label: "Equipment Number:",
+                name: "equipment_no",
+                attr: {
+                    class: "form-control"
+                }
+            }, {
+                label: "Type:",
+                name: "type",
+                type: "select",
+                options:[
+                    {label:"LADEN", value:"LADEN"},
+                    {label:"EMPTY", value:"EMPTY"},
+                ],
+                attr: {
+                    class: "form-control"
+                }
+            }]
+        });
+
+        editor.on( 'submitComplete', function ( e, json, data, action ) {
+            var status = json.cancelled;
+
+            if (action === 'remove') {
+                if (status.length > 0) {
+                    Modaler.dModal('Unable To Delete Reach Stacker', 'Reach Stacker In Use Cannot Be Deleted.');
+                }
+            }
+        });
+
+        $('#reach_stack').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/reach_stack/table",
+                type: "POST"
+            },
+            serverSide: true,
+            columnDefs: [{ "targets": 1 } ],
+            columns: [
+                { data: "equipment_no" },
+                { data: "type" }
+            ],
+            select: true,
+            buttons: Helpers.permissionButtonBuilder(editor,'Reach Stacker')
+        });
+    }
+}
+
+var OperatorView={
+    positionContainer:function(yard_id){
+        $.ajax({
+            url:"/api/operator_view/position_container",
+            type:"POST",
+            data:{
+                id:yard_id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 260){
+                    Modaler.dModal('Operator','Container has been positioned successfully');
+                    TableRfresh.freshTable('operator_view_tbl');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    manageYard:function(container_id){
+        var error_check = false;
+        var url = "/api/yard_planning/check_stack";
+        var request = new XMLHttpRequest();
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.onload = function () {
+            if (request.readyState == 4 && request.status == 200) {
+                var response = JSON.parse(request.responseText);
+
+                if (response.st == 281) {
+                    $.ajax({
+                        url: "/api/yard_planning/get_stack_info",
+                        type: "POST",
+                        data: {cid: container_id},
+                        success: function (data) {
+                            var result = $.parseJSON(data)
+                            $('#containerID').val(result.cnum);
+                            $('#stackID').val(result.stk);
+                            $('#bayID').val(result.bay);
+                            $('#rowID').val(result.row);
+                            $('#tierID').val(result.tier);
+                            $('#reeferID').val(result.reft);
+                            $('#equipmentID').val(result.eqip);
+                        },
+                        error: function () {
+                            alert('Something Went Wrong');
+                        }
+                    });
+
+                    OperatorTable
+                        .title('Edit Position')
+                        .buttons({
+                            "label": "Update", "fn": function () {
+                                var stack = $('#stackID').val();
+                                var bay = this.field('bay');
+                                var row = $('#rowID').val();
+                                var tier = $('#tierID').val();
+                                var reefer = $('#reeferID').val();
+                                var stacker = this.field('stack');
+                                var tier_row = this.field('tier');
+                                var equipment = this.field('equipment_no');
+
+                                $.ajax({
+                                    url: "/api/yard_planning/update_stack",
+                                    type: "POST",
+                                    data: {
+                                        cid:container_id,
+                                        stk: stack,
+                                        bay: bay.val(),
+                                        row: row,
+                                        tier: tier,
+                                        refs: reefer,
+                                        eqip: equipment.val(),
+                                        isyd:false
+                                    },
+                                    success: function (data) {
+                                        var result = JSON.parse(data);
+                                            if (result.st==176) {
+                                                stacker.error("Stack "+result.stk+" does not exist");
+                                            }
+                                            if(result.st == 177){
+                                                stacker.error("Container already at Stack position");
+                                            }
+                                            if (result.st == 170) {
+                                                if (result.berr == "empty") {
+                                                    bay.error("Bay field cannot be empty");
+                                                }
+                                                if (result.eqer == "empty") {
+                                                    equipment.error("Equipment Number field cannot be empty");
+                                                }
+                                            }
+                                            if (result.st == 161) {
+                                                equipment.error("Reach Stacker equipment Number does not exist");
+                                            }
+                                            if (result.st == 163) {
+                                                equipment.error("Reach Stacker must be "+result.equipment_no+" EMPTY type");
+                                            }
+                                            if (result.st == 154) {
+                                                stacker.error("Container is DG and must be place at Stack DG");
+                                            }
+                                            else if (result.st == 155) {
+                                                stacker.error("Container cannot be place at Stack DG");
+                                            }
+                                            else if (result.st == 156) {
+                                                stacker.error("Stack "+stack+" of bay "+bay+" of row "+row+" is full");
+                                               
+                                            }
+
+                                            if (result.st == 158) {
+                                                stacker.error("Cannot place "+ result.ttyp +" container on top of "+result.ftyp+" container")
+                                            }
+                                            if (result.st == 159) {
+                                                stacker.error("Cannot place "+result.size+" container on top of "+result.fsiz+" container")
+                                            }
+                                            if (result.st == 160) {
+                                                stacker.error("Cannot place "+result.hgt+" container on top of "+result.fhgt+" container")
+                                            }
+                                             if (result.st ==157) {
+                                                tier_row.error('Cannot use tier '+ tier +' whiles tier '+result.tier1+' is vacant');
+                                            
+                                            }
+                                            else if(result.st == 170){
+                                                tier_row.error('Cannot use tier '+ tier +' whiles tier '+result.tier2+' is vacant');
+                                            }
+              
+                                            if(result.st == 298){
+                                                OperatorTable.close();
+                                                TableRfresh.freshTable('operator_view_tbl');
+                                            }
+                                    },
+                                    error: function () {
+                                        alert('something went wrong');
+                                    }
+                                });
+                            }
+                        })
+                        .edit();
+
+                        TableRfresh.freshTable('operator_view_tbl');
+                } 
+            }
+            else {
+                alert('something went wrong');
+
+            }
+        };
+        request.send("data=" + container_id);
+
+     
+    },
+
+    loadBays:function(){
+        var stack = document.getElementById('stackID');
+        var stacker = stack.value;
+
+        if (stacker == "A") {
+            YardPlan.baysList(15);
+        }
+        else if(stacker == "H"){
+            YardPlan.baysList(17);
+        }
+
+        switch (stacker) {
+            case "A":
+            case "Q":
+                YardPlan.baysList(15);
+                break;
+            case "H":
+            case "I":
+                YardPlan.baysList(9);
+                break;
+            case "G":
+                YardPlan.baysList(11);
+                break;
+            case "J":
+            case "DG":
+            case "R":
+                YardPlan.baysList(8);
+                break;
+            case "K":
+            case "L":
+                YardPlan.baysList(10);
+                break;
+            case "F":
+                YardPlan.baysList(26);
+                break;
+            case "M":
+                YardPlan.baysList(18);
+                break;
+            case "N":
+            case "P":
+                YardPlan.baysList(16);
+                break;
+            case "O":
+                YardPlan.baysList(12);
+                break;
+            default:
+                YardPlan.baysList(17);
+                break;
+        }
+        
+    },
+
+    baysList:function(stack){
+        var datalist = document.getElementById('bays');
+        datalist.innerHTML = '';
+        for (var i = 1; i <= stack; i++) {
+            var option = document.createElement('option');
+            option.innerText = i;
+            datalist.appendChild(option);
+        }
+    },
+
+    removeContainer:function(yard_id) {
+        $.ajax({
+            url:"/api/operator_view/remove_container",
+            type:"POST",
+            data:{
+                id:yard_id,
+                ctyp:true
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 264){
+                    Modaler.dModal('Operator','Container has been successfully remove from stack');
+                    TableRfresh.freshTable('operator_view_tbl');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    moveToExamination:function(id){
+        $.ajax({
+            url:"/api/operator_view/remove_container",
+            type:"POST",
+            data:{
+                id:id,
+                ctyp:false
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 264){
+                    Modaler.dModal('Operator','Container has been moved to examination area');
+                    TableRfresh.freshTable('operator_view_tbl');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    iniTable:function(){
+        OperatorTable =  new $.fn.dataTable.Editor({
+            ajax: "/api/yard_planning/yard_table",
+            fields: [ {
+                label: "Container:",
+                name: "container_id",
+                attr: {
+                    class: "form-control",
+                    id: "containerID",
+                    disabled: true,
+                }
+            },
+            {
+                label: "Stack:",
+                name: "stack",
+                attr: {
+                    onchange:"YardPlan.loadBays()",
+                    class: "form-control",
+                    id:"stackID",
+                    list:"stack_list",
+                }
+            },{
+                label: "Bay:",
+                name: "bay",
+                def:1,
+                attr: {
+                    list:"bays",
+                    class: "form-control",
+                    id:"bayID"
+                }
+            },{
+                label: "Row:",
+                name: "row",
+                attr: {
+                    class: "form-control",
+                    id:"rowID"
+                },
+                type: "select",
+                options:[
+                    {label:"A", value:"A"},
+                    {label:"B", value:"B"},
+                    {label:"C", value:"C"},
+                    {label:"D", value:"D"}
+                ]
+            },{
+                label: "Tier:",
+                name: "tier",
+                attr: {
+                    class: "form-control",
+                    id:"tierID"
+                },
+                type: "select",
+                options:[
+                    {label:"1",value:1},
+                    {label:"2",value:2},
+                    {label:"3",value:3}
+                ]
+            },{
+                label: "Equipment Number:",
+                name: "equipment_no",
+                attr: {
+                    class: "form-control",
+                    id:"equipmentID",
+                    list:"equipments"
+                }
+            },{
+                label: "Reefer Status:",
+                name: "reefer_status",
+                attr: {
+                    class: "form-control",
+                    id:"reeferID"
+                },
+                def:0,
+                type: "select",
+                options:[
+                    {label:"YES",value:1},
+                    {label:"NO",value:0}
+                ]
+            },{
+                label: "Assigned by:",
+                name: "assigned_by",
+                attr:{
+                    class:"form-control"
+                }
+            },{
+                label: "Yard Activity:",
+                name: "yard_activity",
+                attr:{
+                    class:"form-control"
+                }
+            },{
+                label: "Stack Time:",
+                name: "stack_time",
+                attr:{
+                    class:"form-control"
+                }
+            }]
+        });
+
+        OperatorTable.on('submitSuccess', function () {
+            TableRfresh.freshTable('operator_view_tbl');
+        });
+
+        OperatorTable.field('stack_time').hide();
+        OperatorTable.field('yard_activity').hide();
+        OperatorTable.field('assigned_by').hide();
+        OperatorTable.field('reefer_status').hide();
+
+        $('#operator_view_tbl').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/operator_view/table",
+                type: "POST",
+            },
+            serverSide: true,
+            columnDefs: [ { type: 'date', 'targets': [8] }, { "searchable": false, "targets": 7 },{ "searchable": false, "targets": 9 } ],
+            order: [[ 8, 'desc' ]],
+            columns: [
+                { data: "cnum" },
+                { data: "emx"},
+                { data: "size" },
+                { data: "opr" },
+                { data: "owr" },
+                { data: "rfs" },
+                { data: "stk" },
+                { data: null,
+                    render:function(data,type,row){
+                        return data.stk+""+data.bay+""+data.row+""+data.tier;
+                    } },
+                { data: "date" },
+                {data: null,
+                    render: function (data, type, row) {
+                        var position = "";
+                        if (data.activity == "ASSIGN") {
+                            position += "<a href='#' onclick='OperatorView.manageYard(\""+ data.cid + "\")' class='depot_cont'>Manage Stack</a><br/>";
+                            position += "<a href='#' onclick='OperatorView.positionContainer(\"" + data.yard_id + "\")' class='depot_cont'>Position</a><br/>";
+                        }
+                        else if(data.activity == "REMOVE"){
+                            position += "<a href='#' onclick='OperatorView.manageYard(\""+ data.cid + "\")' class='depot_cont'>Manage Stack</a><br/>";
+                            position += "<a href='#' onclick='OperatorView.removeContainer(\"" + data.yard_id + "\")' class='depot_cont'>Remove</a><br/>";
+                        }
+                        if(data.activity == "EXAMINATION"){
+                            position += "<a href='#' onclick='OperatorView.moveToExamination(\"" + data.yard_id + "\")' class='depot_cont'>Move To Examination</a><br/>";
+                        }
+
+                        return position;
+
+                    }
+                }
+            ],
+            select: true,
+            buttons: [
+                { extend:"colvis", className:"btn btn-primary"}
+            ]
+        });
+    }
+}
+
+var ExaminationArea={
+
+    activityAlert: function (id, container) {
+
+        $('#container_number').text(container);
+
+        var header = container;
+        var body = "<div class=\"col-md-12\"><table id=\"container_activity\" class=\"display table-responsive\">" +
+            "<thead><tr><th>Activity </th><th>Note</th><th>User</th><th>Date</th><th>ID</th></tr></thead>" +
+            "</table></div>";
+        CondModal.cModal(header, body);
+
+        ExaminationArea.iniActivityTable(id,container);
+    },
+
+    iniActivityTable: function (id,container) {
+
+        addActivity = new $.fn.dataTable.Editor({
+            ajax: "/api/depot_overview/activity_table",
+            fields:[
+                {
+                    label:"Container:",
+                    name:"container_log.container_id",
+                    attr:{
+                        class:"form-control",
+                        id:"containerID",
+                        disabled: true
+                    },
+                    def: id
+                },
+                {
+                    label:"Activity",
+                    name:"container_log.activity_id",
+                    attr:{
+                        class:"form-control",
+                        list: "activity_list"
+                    }
+                },{
+                    label:"Note:",
+                    name:"container_log.note",
+                    type:"textarea",
+                    attr:{
+                        class:"form-control"
+                    }
+                },
+                {
+                    label: "User:",
+                    name: "container_log.user_id",
+                    attr: {
+                        class: "form-control"
+                    }
+                },
+                {
+                    label:"Date:",
+                    name:"container_log.date",
+                    type:"datetime",
+                    def:function () { return new Date(); },
+                    format:"YYYY-MM-DD HH:mm",
+                    attr:{
+                        class:"form-control"
+                    }
+                }
+            ]
+        });
+
+        actEditor = new $.fn.dataTable.Editor({
+            ajax: "/api/depot_overview/activity_table",
+            table: "#container_activity",
+            fields: [
+                {
+                    label: "Container:",
+                    name: "container_log.container_id",
+                    attr: {
+                        class: "form-control",
+                        id: "containerID",
+                        disabled: true
+                    },
+                    def: container
+                },
+                {
+                    label: "Activity:",
+                    name: "container_log.activity_id",
+                    attr: {
+                        class: "form-control",
+                        list: "activity_list"
+                    }
+                }, {
+                    label: "Note:",
+                    name: "container_log.note",
+                    type: "textarea",
+                    attr: {
+                        class: "form-control"
+                    }
+                }, {
+                    label: "User:",
+                    name: "container_log.user_id",
+                    attr: {
+                        class: "form-control"
+                    }
+                }]
+        });
+
+        actEditor.field('container_log.user_id').hide();
+        actEditor.field('container_log.container_id').hide();
+        addActivity.field('container_log.user_id').hide();
+        addActivity.field('container_log.container_id').hide();
+
+        addActivity.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
+        actEditor.on('open', function () {
+            $('.modal').removeAttr('tabindex');
+        });
+
+        addActivity.on('submitSuccess', function () {
+            TableRfresh.freshTable('container_activity');
+        });
+
+        $('#container_activity').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/depot_overview/activity_table",
+                type: "POST",
+                data: {
+                    ctid: id
+                }
+            },
+            columnDefs: [ { type: 'date', 'targets': [3] } ],
+            order: [[ 3, 'asc' ]],
+            serverSide: true,
+            columns: [
+                { data: "name" },
+                { data: "container_log.note" },
+                { data: "container_log.user_id" },
+                { data: "container_log.date" },
+                { data: "container_log.activity_id", visible:false }
+            ],
+            select: true,
+            buttons: [
+                { extend: "create", editor:addActivity, className:"btn btn-primary"},
+                { extend: "edit", editor: actEditor, className:"btn btn-primary" },
+                { extend: "remove", editor: actEditor, className: "btn btn-primary"}
+            ]
+        });
+
+
+    },
+
+    moveToStack:function(container_id){
+        $.ajax({
+            url: "/api/yard_planning/get_container",
+            type: "POST",
+            data: {cid: container_id},
+            success: function (data) {
+                var result = $.parseJSON(data);
+                $('#containerID').val(result.cnum);
+            },
+            error: function () {
+                alert("something went wrong");
+            }
+        });
+
+        yardPlanEditor.create({
+            title: 'Add To Yard',
+            buttons: 'Add',
+        });
+    },
+
+    moveToDepot:function(id){
+        $.ajax({
+            url:"/api/examination_area/depot_move",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 280){
+                    Modaler.dModal('Examination','Container has been move to Depot');
+                    TableRfresh.freshTable('examination');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    iniTable:function(){ 
+        
+        yardPlanEditor =  new $.fn.dataTable.Editor({
+            ajax: "/api/yard_planning/yard_table",
+            fields: [ {
+                label: "Container:",
+                name: "container_id",
+                attr: {
+                    class: "form-control",
+                    id: "containerID",
+                    disabled: true,
+                }
+            },
+            {
+                label: "Stack:",
+                name: "stack",
+                attr: {
+                    onchange:"YardPlan.loadBays()",
+                    class: "form-control",
+                    id:"stackID",
+                    list:"stack_list"
+                }
+            },{
+                label: "Bay:",
+                name: "bay",
+                def:1,
+                attr: {
+                    list:"bays",
+                    class: "form-control",
+                    id:"bayID"
+                }
+            },{
+                label: "Row:",
+                name: "row",
+                attr: {
+                    class: "form-control",
+                    id:"rowID"
+                },
+                type: "select",
+                options:[
+                    {label:"A", value:"A"},
+                    {label:"B", value:"B"},
+                    {label:"C", value:"C"},
+                    {label:"D", value:"D"}
+                ]
+            },{
+                label: "Tier:",
+                name: "tier",
+                attr: {
+                    class: "form-control",
+                    id:"rowID"
+                },
+                type: "select",
+                options:[
+                    {label:"1",value:1},
+                    {label:"2",value:2},
+                    {label:"3",value:3}
+                ]
+            },{
+                label: "Equipment Number:",
+                name: "equipment_no",
+                attr: {
+                    class: "form-control",
+                    id:"equipmentID",
+                    list:"equipments"
+                }
+            },{
+                label: "Reefer Status:",
+                name: "reefer_status",
+                attr: {
+                    class: "form-control",
+                    id:"reeferID"
+                },
+                def:0,
+                type: "select",
+                options:[
+                    {label:"YES",value:1},
+                    {label:"NO",value:0}
+                ]
+            },{
+                label: "Assigned by:",
+                name: "assigned_by",
+                attr:{
+                    class:"form-control"
+                }
+            },{
+                label: "Yard Activity:",
+                name: "yard_activity",
+                attr:{
+                    class:"form-control"
+                }
+            },{
+                label: "Stack Time:",
+                name: "stack_time",
+                attr:{
+                    class:"form-control"
+                }
+            }]
+        });
+
+        yardPlanEditor.on('submitSuccess', function () {
+            TableRfresh.freshTable('examination');
+        });
+
+        yardPlanEditor.field('stack_time').hide();
+        yardPlanEditor.field('yard_activity').hide();
+        yardPlanEditor.field('assigned_by').hide();
+
+        $('#examination').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url: "/api/examination_area/table",
+                type: "POST"
+            },
+            serverSide: true,
+            columnDefs: [ { type: 'date', 'targets': [9] }, { "searchable": false, "targets": 9 } ],
+            order: [[ 8, 'desc' ]],
+            columns: [
+                { data: "cnum" },
+                { data: "code" },
+                { data: "blnum" },
+                { data: "veh" },
+                { data: "drv" },
+                { data: "cons" },
+                { data: "tknam" },
+                { data: "user"},
+                { data: "date"},
+                {data: null,
+                    render: function (data, type, row) {
+
+                        var gated_record = "";
+                        gated_record  +=  '<a class="view_act" href="#" onclick="ExaminationArea.activityAlert(' + data.cid + ',' + '\'' + data.cnum + '\'' + ')">Manage Container</a><br>';
+                        gated_record  +=  '<a class="view_act" href="#" onclick="ExaminationArea.moveToDepot(' + data.gid + ')">Move to Depot</a><br>';
+                        gated_record  +=  '<a class="view_act" href="#" onclick="ExaminationArea.moveToStack(' + data.cid + ')">Move to Stack</a><br>';
+
+
+                        return gated_record;
+
+                    }
+                }
+            ],
+            select: true,
+            buttons: [
+                { extend:"colvis", className:"btn btn-primary"}
+            ]
+        });
+
+    }
+}
+
+var Stack={
+    iniTable:function(){
+        editor = new $.fn.dataTable.Editor( {
+            ajax: "/api/stack/table",
+            table: "#stack_table",
+            fields: [{
+                label: "Name:",
+                name: "name",
+                attr: {
+                    class: "form-control",
+                    maxlength: 10
+                }
+            },{
+                label: "Stack Type:",
+                name: "stack_type",
+                type: "select",
+                options:[
+                    {label:"General Goods", value:1},
+                    {label:"DG", value:2},
+                ],
+                attr: {
+                    class: "form-control",
+                    maxlength: 10
+                }
+            }]
+        });
+
+        editor.on( 'submitComplete', function ( e, json, data, action ) {
+            var status = json.cancelled;
+
+            if (action === 'remove') {
+                if (status.length > 0) {
+                    Modaler.dModal('Unable To Delete Stack', 'Stack In Use Cannot Be Deleted.');
+                }
+            }
+        });
+
+        $('#stack_table').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url:"/api/stack/table",
+                type:"POST"
+            },
+            serverSide: true,
+            columns: [
+                { data: "name" },
+                { data: "stack_type" },
+                { data: "date",visible:false }
+            ],
+            select: true,
+            buttons: Helpers.permissionButtonBuilder(editor,' Stack')
+        });
+
+    }
+}
+
 var DepotOver = {
     activityAlert: function (id, container) {
 
@@ -13555,17 +14948,18 @@ var Login = {
             $.ajax({
                 type:"POST",
                 url:"api/login",
+                async: false,
                 data: {
                     em: email,
                     pass: passwd,
                 },
-                success: function (data) {
+                success: function (data) {            
                     if (data == 'ERROR') {
                         Modaler.dModal(data, 'Wrong Email And Password Combination', 'sm');
                     }
                     else {
                         sessionStorage.setItem('permission',data);
-                        window.location.href = "/user/dashboard";
+                        window.location = "/user/dashboard";
                     }
                 },
                 error: function () {
@@ -13575,6 +14969,25 @@ var Login = {
         }
     }
 };
+
+var Logout={
+    logout:function(){
+        $.ajax({
+            type:"POST",
+            url:"/api/logout",
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 101){
+                    sessionStorage.clear();
+                    window.location.href="/";
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    }
+}
 
 var GroupAccess={
     GroupsOverview:function () {
