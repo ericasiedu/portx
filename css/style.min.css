@@ -63,6 +63,53 @@
     box-shadow: 0 0 5px rgba(0, 0, 0, .08)
 }
 
+.letpas_input{
+    width:250px;
+    float:left;
+}
+
+#input_outer{
+    width:100%;
+}
+
+.input_button{
+    float: left;
+    margin-left: 10px;
+}
+
+::placeholder{
+    color: #666 !important;
+    opacity: 0.6 !important;
+}
+
+::-moz-placeholder{
+    color: #666 !important;
+    opacity: 0.6 !important;
+}
+
+::-webkit-input-placeholder{
+    color: #666 !important;
+    opacity: 0.6 !important;
+}
+
+:-ms-input-placeholder{
+    color: #666 !important;
+    opacity: 0.6 !important;
+}
+
+::-ms-input-placeholder{
+    color: #666 !important;
+    opacity: 0.6 !important;
+}
+
+.letpass_form > #input_outer > :first-child{
+    margin-right: 10px;
+}
+
+/* .letpass_form > :last-child > .form-control{
+    margin-right: 0 !important;
+} */
+
 .doc-topbar-static .topbar .sidebar-toggler, .doc-topbar-static .topbar .topbar-menu-toggler, .topbar-menu-open .doc-topbar-static .topbar .topbar-navigation {
     display: none
 }
