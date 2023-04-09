@@ -3108,6 +3108,8 @@ var GateOut= {
         }
     },
 
+    
+
     getAct: function (number) {
         var act = document.getElementById('act');
         // driver_list.innerHTML = '';
@@ -3139,6 +3141,27 @@ var GateOut= {
         }
     },
 
+    getTrucks:function(number){
+        var container = $('#container').val();
+        if (container == undefined)
+            container = number;
+        if(container){
+            $.ajax({
+                url:"/api/gate_out/get_trucks",
+                type:"POST",
+                data:{
+                    cnum:container
+                },
+                success:function(data){
+                    var result = JSON.parse(data);
+                    $('#vehicle').val(result);
+                }
+            });
+        }
+       
+    },
+
+
     iniTable: function () {
         editor = new $.fn.dataTable.Editor( {
             ajax: "/api/gate_out/table",
@@ -3150,9 +3173,9 @@ var GateOut= {
                 attr: {
                     class: "form-control",
                     list:"container_out",
-                    onselect:"GateOut.getDrivers();GateOut.getAct()",
-                    onkeyup: "GateOut.getDrivers();GateOut.getAct()",
-                    onchange:"GateOut.getDrivers();GateOut.getAct()",
+                    onselect:"GateOut.getDrivers();GateOut.getAct();GateOut.getTrucks()",
+                    onkeyup: "GateOut.getDrivers();GateOut.getAct();GateOut.getTrucks()",
+                    onchange:"GateOut.getDrivers();GateOut.getAct();GateOut.getTrucks()",
                     maxlength: 11,
                     id: "container"
                 }
@@ -3189,7 +3212,9 @@ var GateOut= {
                     name: "gate_record.vehicle_id",
                     attr: {
                         list:"vehicle_out",
-                        class: "form-control"
+                        id:"vehicle",
+                        class: "form-control",
+                        disabled: true,
                     }
                 }, {
                     label: "Trucking Company:",
@@ -3218,7 +3243,6 @@ var GateOut= {
                     ],
                     attr:{
                         class:"form-control",
-                        disabled: true,
                         id: "act",
                     }
                 },{
@@ -4529,23 +4553,75 @@ var YardPlan = {
         });
     },
 
-    moveToTruck:function(id){
+    moveToTruck:function(id,container_id){
+        var data_list = $('#vehicle_list');
+        data_list.html("");
         $.ajax({
-            url:"/api/yard_planning/move_ontruck",
+            url:"/api/yard_planning/vehicles",
+            type:"POST",
+            data:{
+                cid:container_id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                    for(var i=0; i <= result.length; i++){
+                        var options = document.createElement('option');
+                        options.innerText = result[i].lnse;
+                        data_list.append(options);
+                    }
+            },
+            error:function(){
+                alert('something went wrong');
+            }
+        });
+
+        $.ajax({
+            url:"/api/yard_planning/validate_move",
             type:"POST",
             data:{
                 id:id
             },
             success:function(data){
                 var result = JSON.parse(data);
-                 if(result.st == 180){
-                    Modaler.dModal('Move Onto Truck Error','Container cannot be move onto truck due to pending charges');
-                 }
-                 else if(result.st == 181){
+                if(result.st == 180){
+                    Modaler.dModal('Move Onto Truck Error','Container has not been invoiced and paid for');
+                }
+                else if(result.st == 183){
                     Modaler.dModal('Move Onto Truck Error','Letpass has not been created for container');
                 }
-                 else if(result.st == 271){
-                    Modaler.dModal('Truck','Container has been moved on a truck');
+                else if(result.st == 184){
+                    Modaler.dModal('Move Onto Truck Error','Truck not gated in');
+                }
+                 else if(result.st == 282){
+                    moveEditor
+                    .title("Select Truck")
+                    .buttons({
+                        "label": "Move", "fn": function(){
+                            var vehicle = this.field('vehicle_number');
+
+                            $.ajax({
+                                url:"/api/yard_planning/move_ontruck",
+                                type:"POST",
+                                data:{
+                                    id:id,
+                                    vchl:vehicle.val()
+                                },
+                                success:function(data){
+                                    var result = JSON.parse(data);
+                                    if (result.st==188) {
+                                        vehicle.error("Vehicle field cannot be empty");
+                                    }
+                                    else if(result.st == 283){
+                                        moveEditor.close();
+                                        TableRfresh.freshTable('yard_plan');
+                                    }
+                                },
+                                error:function(){
+                                    alert("something went wrong");
+                                }
+                            });
+                        }
+                    }).edit();
                     TableRfresh.freshTable('yard_plan');
                 }
             },
@@ -4575,6 +4651,10 @@ var YardPlan = {
             }
         });
     },
+
+    // moverClick:function(){
+    //     alert('ok');
+    // },
 
     iniTable:function(){
         yardPlanEditor =  new $.fn.dataTable.Editor({
@@ -4675,6 +4755,21 @@ var YardPlan = {
             }]
         });
 
+        moveEditor = new $.fn.dataTable.Editor({
+             ajax: "/api/yard_planning/yard_table",
+             fields:[{
+                label:"Vehicle Number",
+                name:"vehicle_number",
+                attr:{
+                    class: "form-control",
+                    id: "truckID", 
+                    list:"vehicle_list"
+                }
+             }]
+        }); 
+
+
+
         yardPlanEditor.on('submitSuccess', function () {
             TableRfresh.freshTable('yard_plan');
         });
@@ -4747,7 +4842,7 @@ var YardPlan = {
                             gated_record += "<a href='#' onclick='YardPlan.approveMoveTruck(\""+ data.yard_id + "\", "+data.gid+")' class='depot_cont'>Approve Move On To Truck</a><br/>" 
                         }
                         if(data.appr ==1){
-                            gated_record += "<a href='#' onclick='YardPlan.moveToTruck(\""+ data.yard_id + "\")' class='depot_cont'>Move To Truck</a><br/>"
+                            gated_record += "<a href='#' onclick='YardPlan.moveToTruck(\""+ data.yard_id + "\", "+data.cid+")' class='depot_cont'>Move To Truck</a><br/>"
                             gated_record += "<a href='#' onclick='YardPlan.manageYard(\""+ data.cid + "\")' class='depot_cont'>Manage Yard</a><br/>"
                             gated_record += "<a href='#' onclick='YardPlan.removeFromStack(\""+ data.yard_id + "\")' class='depot_cont'>Remove From Stack</a><br/>"
                             gated_record += "<span class='position'><strong>Positioned</strong></span><br/>";
