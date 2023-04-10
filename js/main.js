@@ -4611,6 +4611,9 @@ var YardPlan = {
                                     if (result.st==188) {
                                         vehicle.error("Vehicle field cannot be empty");
                                     }
+                                    else if(result.st==189){
+                                        vehicle.error("Vehicle already selected for another container");
+                                    }
                                     else if(result.st == 283){
                                         moveEditor.close();
                                         TableRfresh.freshTable('yard_plan');
@@ -4651,10 +4654,6 @@ var YardPlan = {
             }
         });
     },
-
-    // moverClick:function(){
-    //     alert('ok');
-    // },
 
     iniTable:function(){
         yardPlanEditor =  new $.fn.dataTable.Editor({
