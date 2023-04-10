@@ -3024,6 +3024,11 @@ var GateOut= {
                     body = "Container has uncharged storage days. Invoice Numbder: " + result.num;
                     Modaler.dModal(header,body);
                 }
+                else if (result.st == 139){
+                    header = 'Container Gate Out Error';
+                    body = "Container in stack, cannot gate out";
+                    Modaler.dModal(header,body);
+                }
                 else if (result.st == 232){
                     header = "Gated Out";
                     body = "Container Number " + container + " gated out";
@@ -3103,6 +3108,8 @@ var GateOut= {
         }
     },
 
+    
+
     getAct: function (number) {
         var act = document.getElementById('act');
         // driver_list.innerHTML = '';
@@ -3134,6 +3141,27 @@ var GateOut= {
         }
     },
 
+    getTrucks:function(number){
+        var container = $('#container').val();
+        if (container == undefined)
+            container = number;
+        if(container){
+            $.ajax({
+                url:"/api/gate_out/get_trucks",
+                type:"POST",
+                data:{
+                    cnum:container
+                },
+                success:function(data){
+                    var result = JSON.parse(data);
+                    $('#vehicle').val(result);
+                }
+            });
+        }
+       
+    },
+
+
     iniTable: function () {
         editor = new $.fn.dataTable.Editor( {
             ajax: "/api/gate_out/table",
@@ -3145,9 +3173,9 @@ var GateOut= {
                 attr: {
                     class: "form-control",
                     list:"container_out",
-                    onselect:"GateOut.getDrivers();GateOut.getAct()",
-                    onkeyup: "GateOut.getDrivers();GateOut.getAct()",
-                    onchange:"GateOut.getDrivers();GateOut.getAct()",
+                    onselect:"GateOut.getDrivers();GateOut.getAct();GateOut.getTrucks()",
+                    onkeyup: "GateOut.getDrivers();GateOut.getAct();GateOut.getTrucks()",
+                    onchange:"GateOut.getDrivers();GateOut.getAct();GateOut.getTrucks()",
                     maxlength: 11,
                     id: "container"
                 }
@@ -3184,7 +3212,9 @@ var GateOut= {
                     name: "gate_record.vehicle_id",
                     attr: {
                         list:"vehicle_out",
-                        class: "form-control"
+                        id:"vehicle",
+                        class: "form-control",
+                        disabled: true,
                     }
                 }, {
                     label: "Trucking Company:",
@@ -3213,7 +3243,6 @@ var GateOut= {
                     ],
                     attr:{
                         class:"form-control",
-                        disabled: true,
                         id: "act",
                     }
                 },{
@@ -4327,8 +4356,6 @@ var YardPlan = {
             }
         };
         request.send("data=" + container_id);
-
-     
     },
 
     loadBays:function(){
@@ -4526,6 +4553,108 @@ var YardPlan = {
         });
     },
 
+    moveToTruck:function(id,container_id){
+        var data_list = $('#vehicle_list');
+        data_list.html("");
+        $.ajax({
+            url:"/api/yard_planning/vehicles",
+            type:"POST",
+            data:{
+                cid:container_id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                    for(var i=0; i <= result.length; i++){
+                        var options = document.createElement('option');
+                        options.innerText = result[i].lnse;
+                        data_list.append(options);
+                    }
+            },
+            error:function(){
+                alert('something went wrong');
+            }
+        });
+
+        $.ajax({
+            url:"/api/yard_planning/validate_move",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 180){
+                    Modaler.dModal('Move Onto Truck Error','Container has not been invoiced and paid for');
+                }
+                else if(result.st == 183){
+                    Modaler.dModal('Move Onto Truck Error','Letpass has not been created for container');
+                }
+                else if(result.st == 184){
+                    Modaler.dModal('Move Onto Truck Error','Truck not gated in');
+                }
+                 else if(result.st == 282){
+                    moveEditor
+                    .title("Select Truck")
+                    .buttons({
+                        "label": "Move", "fn": function(){
+                            var vehicle = this.field('vehicle_number');
+
+                            $.ajax({
+                                url:"/api/yard_planning/move_ontruck",
+                                type:"POST",
+                                data:{
+                                    id:id,
+                                    vchl:vehicle.val()
+                                },
+                                success:function(data){
+                                    var result = JSON.parse(data);
+                                    if (result.st==188) {
+                                        vehicle.error("Vehicle field cannot be empty");
+                                    }
+                                    else if(result.st==189){
+                                        vehicle.error("Vehicle already selected for another container");
+                                    }
+                                    else if(result.st == 283){
+                                        moveEditor.close();
+                                        TableRfresh.freshTable('yard_plan');
+                                    }
+                                },
+                                error:function(){
+                                    alert("something went wrong");
+                                }
+                            });
+                        }
+                    }).edit();
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    approveMoveTruck:function(id,gate_record) {
+        $.ajax({
+            url:"/api/yard_planning/approve_move",
+            type:"POST",
+            data:{
+                id:id,
+                gid:gate_record
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                 if(result.st == 267){
+                    Modaler.dModal('Truck','Container moved on to truck approved');
+                    TableRfresh.freshTable('yard_plan');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
     iniTable:function(){
         yardPlanEditor =  new $.fn.dataTable.Editor({
             ajax: "/api/yard_planning/yard_table",
@@ -4625,6 +4754,21 @@ var YardPlan = {
             }]
         });
 
+        moveEditor = new $.fn.dataTable.Editor({
+             ajax: "/api/yard_planning/yard_table",
+             fields:[{
+                label:"Vehicle Number",
+                name:"vehicle_number",
+                attr:{
+                    class: "form-control",
+                    id: "truckID", 
+                    list:"vehicle_list"
+                }
+             }]
+        }); 
+
+
+
         yardPlanEditor.on('submitSuccess', function () {
             TableRfresh.freshTable('yard_plan');
         });
@@ -4644,7 +4788,7 @@ var YardPlan = {
             order: [[ 15, 'desc' ]],
             columns: [
                 { data: "cid", visible:false },
-                { data: "tknam"},
+                { data: "acty"},
                 { data: "emx", visible:false },
                 { data: "trty", visible:false },
                 { data: "sts" },
@@ -4664,10 +4808,13 @@ var YardPlan = {
 
                         var gated_record = "";
 
-                        // if(data.yid == "STACKED"){
-                        //     gated_record += "<a href='#' onclick='YardPlan.manageYard(\""+ data.cid + "\")' class='depot_cont'>Manage Yard</a><br/>"
-                        // }
-                        if(data.yid == "NOT STACKED"){
+                        if(data.ytat == 1){
+                            gated_record += "<a href='/user/gate_out' class='depot_cont'>Pending Gate Out</a><br/>"
+                        }
+                        if((data.ytat == 1)&& (data.trty == "EXPORT")){
+                            gated_record += "<a href='#' onclick='YardPlan.moveToYard(\""+ data.cnum + "\", " + data.cid + ")' class='depot_cont'>Move To Stack</a><br/>";
+                        }
+                        else if((data.yid == "NOT STACKED") && (data.ytat == 0) ){
                             gated_record += "<a href='#' onclick='YardPlan.moveToYard(\""+ data.cnum + "\", " + data.cid + ")' class='depot_cont'>Move To Stack</a><br/>";
                             gated_record += "<a href='#' onclick='YardPlan.moveToExamination(\""+ data.gid + "\")' class='depot_cont'>Move To Examination</a><br/>"
                         }
@@ -4680,22 +4827,26 @@ var YardPlan = {
                         else if((data.posi == 1) && (data.appr == 0) &&(data.actv == "REMOVE")){
                             gated_record += "<a href='#' onclick='YardPlan.approveRemoval(\""+ data.yard_id + "\")' class='depot_cont'>Approve Removal</a><br/>"
                         }
-                        else if ((data.posi == 0) && ((data.actv == "REMOVE") || (data.actv == "EXAMINATION"))) {
+                        else if ((data.posi == 0) && ((data.actv == "REMOVE") || (data.actv == "EXAMINATION") || (data.actv == "ON TRUCK"))) {
                             gated_record += "<a href='#' onclick='YardPlan.pendingApproval(\""+ data.yard_id + "\")' class='depot_cont'>Pending Approval</a><br/>" 
                         }
                         if ((data.posi == 1) && (data.actv == "EXAMINATION")) {
                             gated_record += "<a href='#' onclick='YardPlan.approveExamination(\""+ data.gid + "\", "+data.yard_id+")' class='depot_cont'>Approve Examination Move</a><br/>" 
                         }
+                        /*if ((data.ytat == 0) && (data.actv == "ON TRUCK")) {
+                            gated_record += "<a href='#' onclick='YardPlan.moveToTruck(\""+ data.yard_id + "\")' class='depot_cont'>Move To Truck</a><br/>"
+                        }
+                        else*/
+                         if ((data.posi == 1) && (data.actv == "ON TRUCK")) {
+                            gated_record += "<a href='#' onclick='YardPlan.approveMoveTruck(\""+ data.yard_id + "\", "+data.gid+")' class='depot_cont'>Approve Move On To Truck</a><br/>" 
+                        }
                         if(data.appr ==1){
+                            gated_record += "<a href='#' onclick='YardPlan.moveToTruck(\""+ data.yard_id + "\", "+data.cid+")' class='depot_cont'>Move To Truck</a><br/>"
                             gated_record += "<a href='#' onclick='YardPlan.manageYard(\""+ data.cid + "\")' class='depot_cont'>Manage Yard</a><br/>"
-
                             gated_record += "<a href='#' onclick='YardPlan.removeFromStack(\""+ data.yard_id + "\")' class='depot_cont'>Remove From Stack</a><br/>"
                             gated_record += "<span class='position'><strong>Positioned</strong></span><br/>";
                         }
-
-
                         return gated_record;
-
                     }
                 }
             ],
@@ -5018,6 +5169,26 @@ var OperatorView={
         });
     },
 
+    moveOnToTruck:function(id){
+        $.ajax({
+            url:"/api/operator_view/move_truck",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                if(result.st == 265){
+                    Modaler.dModal('Operator','Container has been moved onto truck');
+                    TableRfresh.freshTable('operator_view_tbl');
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
     iniTable:function(){
         OperatorTable =  new $.fn.dataTable.Editor({
             ajax: "/api/yard_planning/yard_table",
@@ -5161,6 +5332,9 @@ var OperatorView={
                         }
                         if(data.activity == "EXAMINATION"){
                             position += "<a href='#' onclick='OperatorView.moveToExamination(\"" + data.yard_id + "\")' class='depot_cont'>Move To Examination</a><br/>";
+                        }
+                        if(data.activity == "ON TRUCK"){
+                            position += "<a href='#' onclick='OperatorView.moveOnToTruck(\"" + data.yard_id + "\")' class='depot_cont'>Move To Truck</a><br/>";
                         }
 
                         return position;
@@ -5568,6 +5742,66 @@ var Stack={
             buttons: Helpers.permissionButtonBuilder(editor,' Stack')
         });
 
+    }
+}
+
+var Truck = {
+
+    truckGateIn:function(id){
+        $.ajax({
+            url:"/api/truck/gatein_truck",
+            type:"POST",
+            data:{
+                id:id
+            },
+            success:function(data){
+                let result = JSON.parse(data);
+                if (result.st == 273) {
+                    Modaler.dModal('Truck Gate In','Truck has been successfully gated in');
+                    TableRfresh.freshTable('truck');
+                }
+            },
+            error:function(){
+
+            }
+        });
+    },
+
+    iniTable:function(){
+        $('#truck').DataTable( {
+            dom: "Bfrtip",
+            ajax: {
+                url:"/api/truck/table",
+                type:"POST"
+            },
+            serverSide: true,
+            columnDefs: [ { "searchable": false, "targets": 7 } ],
+            order: [[ 6, 'desc' ]],
+            columns: [
+                { data: "vehicle_number" },
+                { data: "vehicle_driver"},
+                { data:"letpass_no"},
+                { data:"offload_time"},
+                { data:"onload_time"},
+                { data:"gate_status"},
+                { data:"date"},
+                { data: null,
+                    render:function (data, type, row) {
+                        var truck = '';
+                        if (data.gstat == "") {
+                            truck += "<a href='#' onclick='Truck.truckGateIn(\""+ data.id + "\")' class='depot_cont'>Gate In</a><br/>";
+                        }
+                        if (data.gstat=='GATED IN') {
+                            truck += "<a href='/user/yard_planning' class='depot_cont'>On Load Container</a><br/>";
+                        }
+                        return truck;
+                    }}
+            ],
+            select: true,
+            buttons: [
+                { extend:"colvis", className:"btn btn-primary"}
+            ]
+        });
     }
 }
 
@@ -6985,7 +7219,7 @@ var LetPass = {
         });
 
         $('#container-button').on('click', function() {
-            //check list
+            $('#drivers_error').text("");
             selected_containers = [];
             var container_list = document.getElementById('container');
             var boxes = container_list.getElementsByTagName('input');
@@ -7039,15 +7273,32 @@ var LetPass = {
 
             }
 
+            $('#letpass_wrapper').remove();
+            var letpass_form_input = '<div id="letpass_wrapper" class="row letpass_form"></div>';
+            $('#wrapper_input').append(letpass_form_input);
+
+            var driver_input = '<div id="input_outer" class="input_m">'+
+                              '<div class="letpas_input">'+
+                                '<p><input class="form-control" placeholder="Vehicle License Plate" maxlength="18"></p>'+
+                                '<p><span class="vehicle_error" style="color:red;"></span></p>'+
+                               '</div>'+
+                               '<div class="letpas_input">'+
+                               '<p><input class="form-control" placeholder="Driver Name"/></p>'+
+                               '<p><span class="driver_error" style="color:red;"></span></p>'+
+                               '</div>'+
+                               '<div id="f_button" class="input_button">'+
+                               '<button style="margin-right:5px" onclick="LetPass.addbutton(event)">Add</button>'+
+                               '<button style="margin-right:10px" disabled>Remove</button>'+
+                            '</div>'+
+                            '</div>';
+                            $('#letpass_wrapper').append(driver_input);
         });
 
         $('#driver-button').on('click', function() {
+           
             var driver_form = document.getElementById('drivers');
-            var textbox_groups = driver_form.getElementsByClassName('driver');
-
+            var textbox_groups = driver_form.getElementsByClassName('input_m');
             var drivers = [];
-            $('#drivers_error').text('');
-
             var is_complete = true;
 
             for (pair in textbox_groups)
@@ -7057,39 +7308,36 @@ var LetPass = {
                 }
                 var driver_input = textbox_groups[pair].getElementsByTagName('input');
                 var error_span = textbox_groups[pair].getElementsByClassName('driver_error');
+                var vehicle_error = textbox_groups[pair].getElementsByClassName('vehicle_error');
 
                 $(error_span).text("");
+                $(vehicle_error).text("");
 
                 var driver = {
                     license: driver_input[0].value.trim(),
                     name: driver_input[1].value.trim()
                 };
 
-
-                if (driver.name == "" && driver.license == ""){
-                    continue;
-                }
-                if (driver.license == "")
-                {
-                    $(error_span).text("Please Enter The Driver's License");
+                const vehicle_patterns = /^\(?([A-Za-z]{2})\)?[-. ]?([0-9]{3,4})[-. ]?([A-Za-z0-9]{1,2})$/g;
+                let vehicle = driver.license.match(vehicle_patterns);
+                if (driver.license == ""){
+                    $(vehicle_error).text("Please Enter The Vehicle's License plate");
                     is_complete = false;
                 }
-                else if (driver.name == "")
-                {
+                else if(!vehicle){
+                    $(vehicle_error).text("Vehicle's License number is not valid");
+                     is_complete = false;
+                }
+                if (driver.name == ""){
                     $(error_span).text("Please Enter The Driver's Name");
-                    is_complete = false;
+                     is_complete = false;
                 }
-                else {
+                if(driver.name != "" && driver.license != "") {
                     drivers.push(driver);
                 }
-
             }
 
-            if (drivers.length   == 0){
-                $('#drivers_error').text('Please Add At Least One Driver');
-                return;
-            }
-            if (!is_complete){
+            if (!is_complete) {
                 return;
             }
 
@@ -7202,7 +7450,31 @@ var LetPass = {
             select: true,
             buttons: LetPassHelper.permissionButtonBuilder(editor,'Let Pass Date',)
         });
+    },
+
+    addbutton:function(e){
+       e.preventDefault();
+        var new_input = '<div id="input_outer" class="input_m"><div class="letpas_input">'+
+        '<p><input class="form-control" placeholder="Vehicle License Plate" maxlength="18"></p>'+
+        '<p><span class="vehicle_error" style="color:red;"></span></p>'+
+    '</div>'+
+    '<div class="letpas_input">'+
+        '<p><input class="form-control" placeholder="Driver Name"/></p>'+
+        '<p><span class="driver_error" style="color:red;"></span></p>'+
+     '</div>'+
+     '<div id="f_button" class="input_button">'+
+     '<button style="margin-right:6px" onclick="LetPass.addbutton(event)">Add</button>'+
+     '<button style="margin-right:10px" onclick="LetPass.removebutton(event)">Remove</button>'+
+    '</div>'+
+     '</div>';
+     $('#letpass_wrapper').append(new_input);
+    },
+
+    removebutton:function(e){
+        e.preventDefault();
+        $('#input_outer').remove();
     }
+
 }
 
 var Invoicing = {
@@ -13127,7 +13399,7 @@ var StockReport = {
             "<th>Days Spent</th><th>Stack</th><th>Position</th><th>Client</th><th>Condition</th></tr></thead>" +
             "</table>";
 
-        Modaler.dModal(header, body, 'lg');
+        Modaler.dModal(header, body, 'modal-xl');
 
         StockReport.iniLineTable(id);
 

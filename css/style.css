@@ -20,7 +20,13 @@
   color:red;
 }
 
+#input_wrapper{
+  width:50% !important;
+}
 
+.letpass_input{
+  float: left;
+}
 
 .doc-btn-spacing .btn-group .btn,
 .doc-btn-spacing .btn-group .btn-group,
