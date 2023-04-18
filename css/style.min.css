@@ -106,9 +106,10 @@
     margin-right: 10px;
 }
 
-/* .letpass_form > :last-child > .form-control{
-    margin-right: 0 !important;
-} */
+.letpass_form > #row_input > :first-child{
+    margin-right: 10px;
+}
+
 
 .doc-topbar-static .topbar .sidebar-toggler, .doc-topbar-static .topbar .topbar-menu-toggler, .topbar-menu-open .doc-topbar-static .topbar .topbar-navigation {
     display: none
