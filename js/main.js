@@ -7454,7 +7454,7 @@ var LetPass = {
 
     addbutton:function(e){
        e.preventDefault();
-        var new_input = '<div id="input_outer" class="input_m"><div class="letpas_input">'+
+        var new_input = '<div id="row_input" class="input_m"><div class="letpas_input">'+
         '<p><input class="form-control" placeholder="Vehicle License Plate" maxlength="18"></p>'+
         '<p><span class="vehicle_error" style="color:red;"></span></p>'+
     '</div>'+
@@ -7472,7 +7472,7 @@ var LetPass = {
 
     removebutton:function(e){
         e.preventDefault();
-        $('#input_outer').remove();
+        $('#row_input').remove();
     }
 
 }
