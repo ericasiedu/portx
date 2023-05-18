@@ -27,6 +27,11 @@ button, input, optgroup, select, textarea {
     margin-right: 30px !important;
 }
 
+.bare_chasis_date{
+    margin-left:6rem !important;
+    margin-right: 2rem !important;
+}
+
 .select-t{
     margin-left:40px !important;
 }

@@ -2936,7 +2936,6 @@ var GateIn = {
            
            
             GateIn.getTradetypeInfo(gate_record_id);
-            // GateIn.getContainerEditInfo(gate_record_id);
             GateIn.invoiceContainer(gate_record_id);
         });
     }
@@ -3160,6 +3159,7 @@ var GateOut= {
         }
        
     },
+    
 
 
     iniTable: function () {
@@ -3213,8 +3213,7 @@ var GateOut= {
                     attr: {
                         list:"vehicle_out",
                         id:"vehicle",
-                        class: "form-control",
-                        disabled: true,
+                        class: "form-control"
                     }
                 }, {
                     label: "Trucking Company:",
@@ -5745,11 +5744,10 @@ var Stack={
     }
 }
 
-var Truck = {
-
+var BareChasis = {
     truckGateIn:function(id){
         $.ajax({
-            url:"/api/truck/gatein_truck",
+            url:"/api/bare_chasis/gatein_truck",
             type:"POST",
             data:{
                 id:id
@@ -5767,19 +5765,161 @@ var Truck = {
         });
     },
 
+    loadTruck:function(){
+        var letpass = document.getElementById('letID');
+        var vehicle_datalist = document.getElementById('vehicle_list');
+        vehicle_datalist.innerHTML = "";
+        
+        $.ajax({
+            url:"/api/bare_chasis/get_trucks",
+            type:"POST",
+            data:{
+                lno:letpass.value
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                for(let i=0; i < result.length; i++){
+                    var option = document.createElement('option');
+                    option.innerText = result[i];
+                    vehicle_datalist.appendChild(option);
+                    
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+
+    },
+
+    loadDrivers:function(){
+        var letpass = document.getElementById('letID');
+        var driver_datalist = document.getElementById('driver_list');
+        driver_datalist.innerHTML = "";
+        
+        $.ajax({
+            url:"/api/bare_chasis/get_drivers",
+            type:"POST",
+            data:{
+                lno:letpass.value
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                for(let i=0; i < result.length; i++){
+                    var option = document.createElement('option');
+                    option.innerText = result[i];
+                    driver_datalist.appendChild(option);
+                    
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
+    loadContainer:function(){
+        var letpass = document.getElementById('letID');
+        var container_datalist = document.getElementById('container_list');
+        container_datalist.innerHTML = "";
+        
+        $.ajax({
+            url:"/api/bare_chasis/get_containers",
+            type:"POST",
+            data:{
+                lno:letpass.value
+            },
+            success:function(data){
+                var result = JSON.parse(data);
+                for(let i=0; i < result.length; i++){
+                    var option = document.createElement('option');
+                    option.innerText = result[i];
+                    container_datalist.appendChild(option);
+                    
+                }
+            },
+            error:function(){
+                alert("something went wrong");
+            }
+        });
+    },
+
     iniTable:function(){
+
+        editor = new $.fn.dataTable.Editor( {
+            ajax: "/api/bare_chasis/table",
+            table: "#truck",
+            fields: [ {
+                label: "Letpass Number:",
+                name: "letpass_no",
+                attr: {
+                    onblur:"BareChasis.loadTruck();BareChasis.loadDrivers();BareChasis.loadContainer()",
+                    class: "form-control",
+                    maxlength: 10,
+                    id:"letID"
+                }
+            },{
+                label: "Container Number",
+                name: "container_id",
+                attr: {
+                    class: "form-control",
+                    list:"container_list"
+                }
+            }, {
+                label: "Vehicle Number:",
+                name: "vehicle_number",
+                attr: {
+                    class: "form-control",
+                    list:"vehicle_list"
+                }
+            },
+            {
+                label: "Vehicle Driver:",
+                name: "vehicle_driver",
+                attr: {
+                    class: "form-control",
+                    list:"driver_list"
+                }
+            },{
+                label: "Letpass ID:",
+                name: "letpass_id",
+                attr: {
+                    class: "form-control"
+                }
+            }]
+        });  
+        
+        editor.field('letpass_id').hide();
+        editor.on( 'submitComplete', function ( e, json, data, action ) {
+            var status = json.cancelled;
+
+            if (action === 'remove') {
+                if (status.length > 0) {
+                    Modaler.dModal('Bare Chasis', 'Record can not be deleted.');
+                }
+            }
+        });
+
+        
+        
+
         $('#truck').DataTable( {
             dom: "Bfrtip",
             ajax: {
-                url:"/api/truck/table",
-                type:"POST"
+                url:"/api/bare_chasis/table",
+                type:"POST",
+                data: function (d) {
+                    d.stdt = $('#start_date').val();
+                    d.eddt = $('#end_date').val();
+                }
             },
             serverSide: true,
-            columnDefs: [ { "searchable": false, "targets": 7 } ],
-            order: [[ 6, 'desc' ]],
+            columnDefs: [ { "searchable": false, "targets": 8 } ],
+            order: [[ 7, 'desc' ]],
             columns: [
                 { data: "vehicle_number" },
                 { data: "vehicle_driver"},
+                { data: "container_id"},
                 { data:"letpass_no"},
                 { data:"offload_time"},
                 { data:"onload_time"},
@@ -5789,7 +5929,7 @@ var Truck = {
                     render:function (data, type, row) {
                         var truck = '';
                         if (data.gstat == "") {
-                            truck += "<a href='#' onclick='Truck.truckGateIn(\""+ data.id + "\")' class='depot_cont'>Gate In</a><br/>";
+                            truck += "<a href='#' onclick='BareChasis.truckGateIn(\""+ data.id + "\")' class='depot_cont'>Gate In</a><br/>";
                         }
                         if (data.gstat=='GATED IN') {
                             truck += "<a href='/user/yard_planning' class='depot_cont'>On Load Container</a><br/>";
@@ -5798,10 +5938,12 @@ var Truck = {
                     }}
             ],
             select: true,
-            buttons: [
-                { extend:"colvis", className:"btn btn-primary"}
-            ]
+            buttons: TruckButtons.permissionButtonBuilder(editor,' Truck')
         });
+
+        $('#start_date, #end_date').on('change', function () {
+            $('#truck').DataTable().ajax.reload();
+    });
     }
 }
 
@@ -7301,6 +7443,8 @@ var LetPass = {
             var drivers = [];
             var is_complete = true;
 
+            var repeated_vehicle ="";
+
             for (pair in textbox_groups)
             {
                 if (isNaN(pair)) {
@@ -7320,6 +7464,7 @@ var LetPass = {
 
                 const vehicle_patterns = /^\(?([A-Za-z]{2})\)?[-. ]?([0-9]{3,4})[-. ]?([A-Za-z0-9]{1,2})$/g;
                 let vehicle = driver.license.match(vehicle_patterns);
+            
                 if (driver.license == ""){
                     $(vehicle_error).text("Please Enter The Vehicle's License plate");
                     is_complete = false;
@@ -7328,6 +7473,10 @@ var LetPass = {
                     $(vehicle_error).text("Vehicle's License number is not valid");
                      is_complete = false;
                 }
+                else if(driver.license == repeated_vehicle){
+                    $(vehicle_error).text("Vehicle number repeated");
+                    is_complete = false;
+                }
                 if (driver.name == ""){
                     $(error_span).text("Please Enter The Driver's Name");
                      is_complete = false;
@@ -7335,6 +7484,7 @@ var LetPass = {
                 if(driver.name != "" && driver.license != "") {
                     drivers.push(driver);
                 }
+                repeated_vehicle = vehicle;
             }
 
             if (!is_complete) {
@@ -7760,7 +7910,7 @@ var Invoicing = {
                                 }
                             }
                             else {
-                                $('#error_label').text("All containers have been invoiced under this " + number_type);
+                                $('#error_label').text("Containers under "+number_type+" have not either been gated in or have been invoiced");
                             }
                         }
                     },
@@ -16429,6 +16579,20 @@ var LetDriverEdit={
         var buttons=[];
         if (permission[system_object]['update'] == 1) {
             buttons.push({extend: "edit", editor: editor, formTitle: "Edit "+formTitle, className: "btn btn-primary"});
+        }
+        return buttons;
+    }
+}
+
+var TruckButtons={
+    permissionButtonBuilder:function (editor,formTitle) {
+        var permission=JSON.parse(sessionStorage.getItem('permission'));
+        var buttons=[{extend: "colvis", className: "btn btn-primary"}];
+        if (permission[system_object]['create'] == 1) {
+            buttons.push({extend: "create", editor: editor, formTitle: "Add "+formTitle,text:"Truck Gate In", className: "btn btn-primary"});
+        }
+        if ((permission[system_object]['delete'] == 1)) {
+            buttons.push({extend: "remove", editor: editor, formTitle: "Delete "+formTitle, className: "btn btn-primary"});
         }
         return buttons;
     }
