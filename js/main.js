@@ -4808,7 +4808,7 @@ var YardPlan = {
                         var gated_record = "";
 
                         if(data.ytat == 1){
-                            gated_record += "<a href='/user/gate_out' class='depot_cont'>Pending Gate Out</a><br/>"
+                            gated_record += "Pending Gate Out<br/>"
                         }
                         if((data.ytat == 1)&& (data.trty == "EXPORT")){
                             gated_record += "<a href='#' onclick='YardPlan.moveToYard(\""+ data.cnum + "\", " + data.cid + ")' class='depot_cont'>Move To Stack</a><br/>";
@@ -5932,7 +5932,7 @@ var BareChasis = {
                             truck += "<a href='#' onclick='BareChasis.truckGateIn(\""+ data.id + "\")' class='depot_cont'>Gate In</a><br/>";
                         }
                         if (data.gstat=='GATED IN') {
-                            truck += "<a href='/user/yard_planning' class='depot_cont'>On Load Container</a><br/>";
+                            truck += "Pending Onload To Truck<br/>";
                         }
                         return truck;
                     }}
