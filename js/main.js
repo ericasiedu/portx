@@ -12575,22 +12575,22 @@ var InvoiceReports = {
                                 );
 
                                 $(api.column(6).footer()).html(
-                                    ''
+                                    'GHS '+ result.hand
                                 );
                                 $(api.column(7).footer()).html(
-                                    'ed'
+                                    'GHS '+ result.transfer
                                 );
                                 $(api.column(8).footer()).html(
-                                    'sa'
+                                    'GHS '+ result.partst
                                 );
                                 $(api.column(9).footer()).html(
-                                    'gh'
+                                    'GHS '+ result.unstuff
                                 );
                                 $(api.column(10).footer()).html(
-                                    'bn'
+                                    'GHS '+ result.ancilar
                                 );
                                 $(api.column(11).footer()).html(
-                                    'ng'
+                                    'GHS '+ result.stor
                                 );
                                 $(api.column(12).footer()).html(
                                     'GHS '+ result.gtax
@@ -12605,7 +12605,7 @@ var InvoiceReports = {
                                     'GHS '+ result.vat
                                 );
                                 $(api.column(16).footer()).html(
-                                    ''
+                                    result.qty
                                 );
 
 
@@ -14054,17 +14054,25 @@ var PaymentReport = {
                 }
             },
             serverSide: true,
-            order: [[ 18, 'desc' ]],
+            order: [[ 24, 'desc' ]],
             columns: [
-                { data: "rcpn" },
+                { data: "rcpn",visible:false },
                 { data: "inv" },
-                { data: "date" },
-                { data: "cost",
-                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "date",visible:false },
                 { data: "wpct", visible:false },
-                { data: "wamt",
+                { data: "wamt",visible:false,
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
-                { data: "tax",
+                { data: "hand",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "transfer",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "p_unstuff",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "unstuff",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "ancilar",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "stor",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "vat",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ), visible:false },
@@ -14074,15 +14082,19 @@ var PaymentReport = {
                 render: $.fn.dataTable.render.number( ',', '.', 2 ),visible:false },
                 { data: "covid",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ),visible:false },
+                { data: "tax",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
+                { data: "cost",
+                render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "paid",
                 render: $.fn.dataTable.render.number( ',', '.', 2 ) },
                 { data: "bank", visible:false},
                 { data: "cheq", visible:false },
-                { data: "cust" },
-                { data: "user" },
+                { data: "cust", visible:false },
+                { data: "user", visible:false },
                 { data: "TEU", visible:false},
                 { data: "mode", visible:false},
-                { data: "date" }
+                { data: "date",visible:false }
             ],
             footerCallback: function ( row, data, start, end, display ) {
                 var api = this.api(), data;
@@ -14114,54 +14126,74 @@ var PaymentReport = {
                             );
 
                             $(api.column(3).footer()).html(
-                                'GHS ' + result.cost
+                                result.wpct+'%'
                             );
 
                             $(api.column(4).footer()).html(
-                               result.wpct+'%'
+                                'GHS '+ result.wamt
                              );
 
                             $(api.column(5).footer()).html(
-                                'GHS '+ result.wamt
+                               'han'
                             ); 
 
                             $(api.column(6).footer()).html(
-                                'GHS ' + result.tax
-                            ); 
+                                'trans'
+                             ); 
+                             $(api.column(7).footer()).html(
+                                'part'
+                             ); 
+                             $(api.column(8).footer()).html(
+                                'unstuf'
+                             ); 
+                             $(api.column(9).footer()).html(
+                                'anci'
+                             ); 
+                             $(api.column(10).footer()).html(
+                                'stor'
+                             ); 
 
-                            $(api.column(7).footer()).html(
+                            $(api.column(11).footer()).html(
                                 'GHS ' + result.vat
                             );
 
-                            $(api.column(8).footer()).html(
+                            $(api.column(12).footer()).html(
                                 'GHS ' + result.getf
                             );
 
-                            $(api.column(9).footer()).html(
+                            $(api.column(13).footer()).html(
                                 'GHS ' + result.nhil
                             );
 
-                            $(api.column(10).footer()).html(
+                            $(api.column(14).footer()).html(
                                 'GHS ' + result.covid
                             );
 
-                            $(api.column(11).footer()).html(
+                            $(api.column(15).footer()).html(
+                                'GHS ' + result.tax
+                            ); 
+
+                            $(api.column(16).footer()).html(
+                                'GHS ' + result.cost
+                            ); 
+
+                            $(api.column(17).footer()).html(
                                 'GHS ' + result.tpay
                             );
 
-                            $(api.column(12).footer()).html(
+                            $(api.column(18).footer()).html(
                                 ''
                             );
 
-                            $(api.column(13).footer()).html(
+                            $(api.column(19).footer()).html(
                                 ''
                             );
 
-                            $(api.column(14).footer()).html(
+                            $(api.column(20).footer()).html(
                                 ''
                             );
 
-                            $(api.column(15).footer()).html(
+                            $(api.column(21).footer()).html(
                                 ''
                             );
                         }
