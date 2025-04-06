@@ -1,0 +1,1 @@
+ALTER TABLE `charges_container_monitoring` ADD `trade_type` INT(10) UNSIGNED NOT NULL AFTER `id`;

@@ -1,0 +1,1 @@
+ALTER TABLE `gate_record` CHANGE `sys_waybill` `sys_waybill` VARCHAR(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL; 

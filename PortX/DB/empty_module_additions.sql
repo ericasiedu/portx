@@ -1,0 +1,1 @@
+ALTER TABLE `booking` ADD INDEX(`shipping_line_id`),ADD INDEX(`customer_id`);

@@ -1,0 +1,1 @@
+INSERT INTO `system_object` (`id`, `name`) VALUES (NULL, 'invoice-waivers');

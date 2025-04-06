@@ -1,0 +1,3 @@
+CREATE TABLE `portx`.`customer_billing_group` ( `id` INT(11) NOT NULL AUTO_INCREMENT , `name` VARCHAR(50) NOT NULL , `extra_free_rent_days` INT(3) UNSIGNED NOT NULL , `tax_type` INT(10) UNSIGNED NOT NULL , `waiver_pct` DECIMAL(6,2) NOT NULL , `waiver_amount` DECIMAL(18,2) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+INSERT INTO `system_object` (`id`, `name`) VALUES (NULL, 'udm-customer_billing_groups');

@@ -1,0 +1,2 @@
+CREATE TABLE charges_container_monitoring ( `id` INT(10) NOT NULL AUTO_INCREMENT , `goods` ENUM('General Goods','Engines/Spares Parts','Vehicle','DG I','DG II') NOT NULL , `cost_per_day` DECIMAL(18,2) NOT NULL , `currency` INT(10) NOT NULL,`date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+INSERT INTO `system_object` (`id`, `name`) VALUES (NULL, 'udm-charges-container-monitoring');

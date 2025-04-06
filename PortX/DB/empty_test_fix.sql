@@ -1,0 +1,1 @@
+ALTER TABLE `container` CHANGE `voyage` `voyage` INT(10) UNSIGNED NULL; 

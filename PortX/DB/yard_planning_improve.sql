@@ -1,0 +1,2 @@
+CREATE TABLE `portx`.`forty_feet_log` ( `id` INT(11) NOT NULL AUTO_INCREMENT , `yard_id` INT(11) NOT NULL , `container_id` INT(11) NOT NULL , `stack` VARCHAR(10) NOT NULL , `bay` INT(11) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB; 
+ALTER TABLE `forty_feet_log` ADD INDEX(`yard_id`),ADD INDEX(`container_id`); 

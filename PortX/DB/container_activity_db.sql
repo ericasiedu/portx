@@ -1,0 +1,1 @@
+insert into container_log_history(container_id,activity_id,note,user_id,date) select container_id as container_number,activity_id,note,user_id,date from container_log where not exists (select * from container_log_history where container_id = 'container_number');

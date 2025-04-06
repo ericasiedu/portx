@@ -1,0 +1,1 @@
+ALTER TABLE `ucl` ADD `20ft_charge` DECIMAL(18,2) NOT NULL AFTER `days`, ADD `40ft_charge` DECIMAL(18,2) NOT NULL AFTER `20ft_charge`, ADD `45ft_charge` DECIMAL(18,2) NOT NULL AFTER `40ft_charge`;
