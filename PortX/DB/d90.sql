@@ -1,0 +1,1 @@
+ALTER TABLE `invoice` ADD `billing_group` INT(11) NOT NULL AFTER `status`;

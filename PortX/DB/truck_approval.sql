@@ -1,0 +1,1 @@
+ALTER TABLE `truck_log` ADD `status` TINYINT(1) NOT NULL DEFAULT '0' AFTER `load_status`; 

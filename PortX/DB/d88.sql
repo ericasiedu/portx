@@ -1,0 +1,1 @@
+ALTER TABLE `customer` ADD `billing_group` INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `credit_limit`;
