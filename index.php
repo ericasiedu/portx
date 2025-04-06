@@ -44,9 +44,6 @@ $klein->with('/api', function () use ($klein) {
         $call=implode('',$_call);
         $class="\\Api\\$call";
 
-        // var_dump($_call);
-        // exit();
-
         $class_c=new $class($request,$response,$service,$app);
         if (!empty($method)) {
             $class_c->$method($request->args);
